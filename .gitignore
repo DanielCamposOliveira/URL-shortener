@@ -365,12 +365,18 @@ FodyWeavers.xsd
 #Arquivo Global
 appsettings.json
 launchSettings.json
-
+appsettings.Development.json
 
 #Back-End
-/Back-end/IdGeneratorService/Properties/
 /Back-end/IdGeneratorService/bin/
 /Back-end/IdGeneratorService/obj/
+/Back-end/IdGeneratorService/Properties/
 
 
-/Back-end/IdGeneratorService/appsettings.json
+#Front-End
+/Front-end/frontend-mvc/wwwroot/lib
+/Front-end/frontend-mvc/wwwroot/bin
+/Front-end/frontend-mvc/wwwroot/obj
+/Front-end/frontend-mvc/wwwroot/Properties
+
+
