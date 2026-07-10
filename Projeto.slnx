@@ -1,0 +1,10 @@
+<Solution>
+    <Folder Name="/Back-End/">
+        <Project Path="Back-end\IdGeneratorService/IdGeneratorService.csproj" />
+    </Folder>
+    <Folder Name="/Front-end/">
+        
+    </Folder>
+</Solution>
+
+
