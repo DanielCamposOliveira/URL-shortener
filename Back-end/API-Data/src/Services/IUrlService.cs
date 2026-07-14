@@ -1,4 +1,5 @@
-﻿using API_Data.src.Models;
+﻿using API_Data.src.DTOs;
+using API_Data.src.Models;
 using static API_Data.src.DTOs.UserDtos;
 
 namespace API_Data.src.Services
@@ -7,5 +8,7 @@ namespace API_Data.src.Services
     {
         Task<AuthResponse> ObterUsuarioPorEmailAsync(LoginRequest req);
         Task<Url> CriarUrlAsync(string url, string userId);
+
+        Task<ExportPagUrlResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit);
     }
 }

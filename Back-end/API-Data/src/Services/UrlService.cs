@@ -21,8 +21,8 @@ namespace API_Data.src.Services
         private readonly IdGeneratorClient _idClient;
         private readonly IJwtService _jwtService;
         private readonly ILogger<UrlService> _logger;
-        
-        public UrlService( IUrlRepository urlRepository,  IdGeneratorClient idClient, IJwtService jwtService, ILogger<UrlService> logger)
+
+        public UrlService(IUrlRepository urlRepository, IdGeneratorClient idClient, IJwtService jwtService, ILogger<UrlService> logger)
         {
             _urlRepository = urlRepository;
             _idClient = idClient;
@@ -54,7 +54,7 @@ namespace API_Data.src.Services
             var User = new UserDtos.AuthResponse(token);
 
 
-            return  User;
+            return User;
 
         }
 
@@ -85,5 +85,27 @@ namespace API_Data.src.Services
 
             return entity;
         }
+
+        public async Task<ExportPagUrlResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit)
+        {
+            // Garantir que a página seja pelo menos 1
+            if (page < 1) page = 1;
+            // Garantir que o limite esteja entre 1 e 50, caso contrário, definir para 10
+            if (limit < 1 || limit > 50) limit = 10;
+
+            // Obter a lista de URLs paginadas para o usuário especificado
+            var data = await _urlRepository.GetUrlPageAsync(userId, page, limit);           
+
+            return data;
+        }
+
+
+
+
+
+
+
+
+
     }
 }

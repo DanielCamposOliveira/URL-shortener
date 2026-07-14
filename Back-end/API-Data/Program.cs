@@ -227,8 +227,8 @@ app.UseSwagger();
 //}
 
 // Este método extrai o ID do usuário a partir das claims do token JWT retornando como string
-string GetUserId(ClaimsPrincipal userPrincipal) =>
-    userPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+//string GetUserId(ClaimsPrincipal userPrincipal) =>
+//    userPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
 
 
@@ -275,28 +275,7 @@ app.MapPost("/api/v1/auth/register", async (RegisterRequest req, AppDbContext db
 
 
 
-// ROTA DE LOGIN DE USUÁRIO
-//app.MapPost("/api/v1/auth/login", async (LoginRequest req, AppDbContext db, IConfiguration config) =>
-//{
-//    try
-//    {
-//        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == req.Email);
-//        if (user == null || !PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
-//            return Results.Unauthorized();
-
-//        // Gera o token JWT para o usuário logado 
-//        var token = GenerateJwtToken(user);
-
-//        return Results.Ok(new UserDtos.AuthResponse(token)); // Retorna o token em caso de sucesso
-//    }
-//    catch
-//    {
-//        return Results.StatusCode(500); // Internal Server Error
-//    }
-
-//}).WithSummary("Login")
-//.WithDescription("Autentica o usuário e retorna um token JWT.");
-
+// -- ROTA DE LOGIN DE USUÁRIO
 app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service, IConfiguration config) =>
 {  
     try
@@ -349,56 +328,83 @@ app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,  
 
 
 
-// ROTA DE LISTAGEM DE URLS ENCURTADAS COM PAGINAÇÃO
-app.MapGet("/api/v1/urls", async (ClaimsPrincipal userPrincipal, AppDbContext db, int page = 1, int limit = 10) =>
+
+//app.MapGet("/api/v1/urls", async (ClaimsPrincipal userPrincipal, AppDbContext db, int page = 1, int limit = 10) =>
+//{
+//    try
+//    {
+//        string userId = GetUserId(userPrincipal);
+//        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
+
+//        // Garantir paginação mínima válida
+//        if (page < 1) page = 1;
+//        if (limit < 1 || limit > 50) limit = 10;
+
+
+//        // Consulta base filtrando pelo usuário logado
+//        var query = db.Urls.Where(u => u.UserId == userId);
+//        // Conta o total de registros para paginação
+//        var total = await query.CountAsync();
+
+//        var data = await query
+//            .OrderByDescending(u => u.CreatedAt)
+//            .Skip((page - 1) * limit)
+//            .Take(limit)
+//            .Select(u => new
+//            {
+//                IsActive  = u.IsActive,
+//                ClickCount = u.ClickCount,
+//                ExpiresAt = u.ExpiresAt,
+//                LastAccessedAt = u.LastAccessedAt,
+//                IdOfuscado = u.IdOfuscado,
+//                OriginalUrl = u.OriginalUrl
+
+
+//            })
+//            .ToListAsync();
+
+//        return Results.Ok(new
+//        {
+//            data,
+//            page,
+//            limit,
+//            total
+//        });
+//    }
+//    catch
+//    {
+//        return Results.StatusCode(500); // Internal Server Error
+//    }
+
+//}).WithSummary("Lista URLs paginadas")
+//.WithDescription("Retorna uma lista paginada de URLs do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
+
+// -- ROTA DE LISTAGEM DE URLS ENCURTADAS COM PAGINAÇÃO
+app.MapGet("/api/v1/urls", async (ClaimsPrincipal userClaims, IUrlService service, int page = 1, int limit = 10) =>
 {
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
     try
     {
-        string userId = GetUserId(userPrincipal);
-        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
 
-        // Garantir paginação mínima válida
-        if (page < 1) page = 1;
-        if (limit < 1 || limit > 50) limit = 10;
+        var data = await service.ObterPageUrlPorUserIdAsync(userId, page, limit);
 
-
-        // Consulta base filtrando pelo usuário logado
-        var query = db.Urls.Where(u => u.UserId == userId);
-        // Conta o total de registros para paginação
-        var total = await query.CountAsync();
-
-        var data = await query
-            .OrderByDescending(u => u.CreatedAt)
-            .Skip((page - 1) * limit)
-            .Take(limit)
-            .Select(u => new
-            {
-                IsActive  = u.IsActive,
-                ClickCount = u.ClickCount,
-                ExpiresAt = u.ExpiresAt,
-                LastAccessedAt = u.LastAccessedAt,
-                IdOfuscado = u.IdOfuscado,
-                OriginalUrl = u.OriginalUrl
-              
-              
-            })
-            .ToListAsync();
-
-        return Results.Ok(new
-        {
-            data,
-            page,
-            limit,
-            total
-        });
+        return Results.Ok(data);
     }
     catch
     {
         return Results.StatusCode(500); // Internal Server Error
     }
-    
 }).WithSummary("Lista URLs paginadas")
 .WithDescription("Retorna uma lista paginada de URLs do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
+      
 
 
 
