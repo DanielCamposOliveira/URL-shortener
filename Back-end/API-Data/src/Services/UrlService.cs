@@ -1,5 +1,8 @@
-﻿using API_Data.src.Models;
+﻿using API_Data.src.DTOs;
+using API_Data.src.Models;
 using API_Data.src.Repository;
+using API_Data.src.Utils;
+using static API_Data.src.DTOs.UserDtos;
 
 namespace API_Data.src.Services
 {
@@ -16,11 +19,43 @@ namespace API_Data.src.Services
     {
         private readonly IUrlRepository _urlRepository;
         private readonly IdGeneratorClient _idClient;
-
-        public UrlService( IUrlRepository urlRepository,  IdGeneratorClient idClient)
+        private readonly IJwtService _jwtService;
+        private readonly ILogger<UrlService> _logger;
+        
+        public UrlService( IUrlRepository urlRepository,  IdGeneratorClient idClient, IJwtService jwtService, ILogger<UrlService> logger)
         {
             _urlRepository = urlRepository;
             _idClient = idClient;
+            _jwtService = jwtService;
+            _logger = logger;
+        }
+
+        public async Task<AuthResponse> ObterUsuarioPorEmailAsync(LoginRequest req)
+        {
+            // Validar o email
+            if (string.IsNullOrEmpty(req.Email))
+                throw new Exception("Email inválido.");
+
+            // Consultar o repositório para obter o usuário correspondente ao email
+            var user = await _urlRepository.GetUserByEmailAsync(req.Email);
+
+            // Se o usuário não for encontrado, lançar uma exceção
+            if (user == null)
+                throw new Exception("Usuário não encontrado.");
+
+            // Verificar a senha usando o PasswordHasher
+            if (user == null || !PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
+                throw new Exception("Senha inválida.");
+
+            // Gerar o token JWT usando o IJwtService
+            var token = _jwtService.GenerateToken(user);
+
+            // Criar o objeto AuthResponse com o token gerado
+            var User = new UserDtos.AuthResponse(token);
+
+
+            return  User;
+
         }
 
         public async Task<Url> CriarUrlAsync(string url, string userId)

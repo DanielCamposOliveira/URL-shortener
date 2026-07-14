@@ -18,6 +18,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IUrlRepository, UrlRepository>();
 builder.Services.AddScoped<IUrlService, UrlService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+
+
 
 // Recupera a string de conexão do appsettings.json de Conexão com o PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQLConnection");
@@ -204,24 +207,24 @@ app.UseSwagger();
 
 // Método auxiliar para gerar tokens JWT
 // Método auxiliar para gerar tokens JWT (usando o Id em string do usuário)
-string GenerateJwtToken(User user)
-{
-    var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-    var tokenDescriptor = new SecurityTokenDescriptor
-    {
-        // NameIdentifier passa a armazenar o ID do usuário como string (GUID)
-        Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Id) }),
+//string GenerateJwtToken(User user)
+//{
+//    var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+//    var tokenDescriptor = new SecurityTokenDescriptor
+//    {
+//        // NameIdentifier passa a armazenar o ID do usuário como string (GUID)
+//        Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Id) }),
 
-        // Expiração de 2 horas
-        Expires = DateTime.UtcNow.AddHours(2),
+//        // Expiração de 2 horas
+//        Expires = DateTime.UtcNow.AddHours(2),
 
-        // Define a chave de assinatura e o algoritmo
-        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
-    };
+//        // Define a chave de assinatura e o algoritmo
+//        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
+//    };
 
-    var token = tokenHandler.CreateToken(tokenDescriptor);
-    return tokenHandler.WriteToken(token);
-}
+//    var token = tokenHandler.CreateToken(tokenDescriptor);
+//    return tokenHandler.WriteToken(token);
+//}
 
 // Este método extrai o ID do usuário a partir das claims do token JWT retornando como string
 string GetUserId(ClaimsPrincipal userPrincipal) =>
@@ -273,18 +276,37 @@ app.MapPost("/api/v1/auth/register", async (RegisterRequest req, AppDbContext db
 
 
 // ROTA DE LOGIN DE USUÁRIO
-app.MapPost("/api/v1/auth/login", async (LoginRequest req, AppDbContext db, IConfiguration config) =>
-{
+//app.MapPost("/api/v1/auth/login", async (LoginRequest req, AppDbContext db, IConfiguration config) =>
+//{
+//    try
+//    {
+//        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == req.Email);
+//        if (user == null || !PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
+//            return Results.Unauthorized();
+
+//        // Gera o token JWT para o usuário logado 
+//        var token = GenerateJwtToken(user);
+
+//        return Results.Ok(new UserDtos.AuthResponse(token)); // Retorna o token em caso de sucesso
+//    }
+//    catch
+//    {
+//        return Results.StatusCode(500); // Internal Server Error
+//    }
+
+//}).WithSummary("Login")
+//.WithDescription("Autentica o usuário e retorna um token JWT.");
+
+app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service, IConfiguration config) =>
+{  
     try
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == req.Email);
-        if (user == null || !PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
+        // Busca o usuário no banco de dados pelo e-mail fornecido
+        var user = await service.ObterUsuarioPorEmailAsync(req);
+        if (user == null)
             return Results.Unauthorized();
 
-        // Gera o token JWT para o usuário logado 
-        var token = GenerateJwtToken(user);
-
-        return Results.Ok(new UserDtos.AuthResponse(token)); // Retorna o token em caso de sucesso
+        return Results.Ok(new UserDtos.AuthResponse(user.Token)); // Retorna o token em caso de sucesso
     }
     catch
     {
@@ -296,45 +318,9 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest req, AppDbContext db, ICon
 
 
 
-// ROTA DE CRIAÇÃO DE URL ENCURTADA
-//app.MapPost("/api/v1/urls", async (CreateUrlRequest req, IdGeneratorClient idClient, AppDbContext db, ClaimsPrincipal userClaims) =>
-//{
-//    try
-//    {
-//        var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-//        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
-
-//        // Consome a API 1 para obter o ID Snowflake e o IdOfuscado (Base62)
-//        var idData = await idClient.GenerateIdAsync();
-//        if (idData == null)
-//            return Results.StatusCode(500); // Erro interno se a API de IDs falhar
-
-//        var urlObj = new Url
-//        {
-//            Id = idData.IdNumerico,
-//            IdOfuscado = idData.IdOfuscado,
-//            OriginalUrl = req.Url,
-//            UserId = userId
-//        };
-
-//        db.Urls.Add(urlObj);
-//        await db.SaveChangesAsync();
-
-//        return Results.Created($"/api/v1/urls/{urlObj.IdOfuscado}", new
-//        {
-//            idOfuscado = urlObj.IdOfuscado,
-//            urlEncurtada = $"https://meusite.com/{urlObj.IdOfuscado}"
-//        });
-//    }
-//    catch
-//    {
-//        return Results.StatusCode(500);
-//    }
-
-//}).RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
-// ROTA DE CRIAÇÃO DE URL ENCURTADA
+// --  ROTA DE CRIAÇÃO DE URL ENCURTADA
 app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,   ClaimsPrincipal userClaims) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT

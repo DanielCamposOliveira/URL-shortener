@@ -29,9 +29,14 @@ namespace API_Data.src.Repository
             await _db.SaveChangesAsync();
         }
 
-        public Task<Url?> GetByIdOfuscadoAsync(string id)
+
+
+
+        // Busca um usuário pelo email no banco de dados
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
-            return _db.Urls.FirstOrDefaultAsync(x => x.IdOfuscado == id);
+            return await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
         }
+
     }
 }
