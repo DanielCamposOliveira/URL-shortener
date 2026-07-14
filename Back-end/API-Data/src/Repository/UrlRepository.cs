@@ -51,7 +51,7 @@ namespace API_Data.src.Repository
                  .OrderByDescending(u => u.CreatedAt)
                  .Skip((page - 1) * limit)
                  .Take(limit)
-                 .Select(u => new ExportPagUrlDTO
+                 .Select(u => new PageUrlDTO
                  {
                      IsActive = u.IsActive,
                      ClickCount = u.ClickCount,

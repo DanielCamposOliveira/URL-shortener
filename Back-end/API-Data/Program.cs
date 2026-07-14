@@ -1,5 +1,6 @@
 using API_Data.src.Data;
 using API_Data.src.DTOs;
+using API_Data.src.Extensions;
 using API_Data.src.Models;
 using API_Data.src.Repository;
 using API_Data.src.Services;
@@ -50,68 +51,72 @@ if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)
 
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 
-
 // Configura a autenticação JWT
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false; // tenho que mudar para true quando colocar em produção
-    options.SaveToken = true;  // Salva o token no contexto da requisição
+builder.Services.AddJwtAuthentication(jwtKey);
 
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true, // Valida a chave de assinatura do token
-        IssuerSigningKey = new SymmetricSecurityKey(keyBytes), // Define a chave de assinatura usada para validar o token
-        ValidateIssuer = false, // Não valida o emissor
-        ValidateAudience = false, // Não valida o público
-        ClockSkew = TimeSpan.Zero // isso significa que não vai aceita  tolerancia de tokem espirado, ex. 5min de atraso
-    };
 
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            var authorizationHeader = context.Request.Headers["Authorization"].ToString();
-            Console.WriteLine($"[JWT] Token recebido no Header: {authorizationHeader}");
-            return Task.CompletedTask;
-        },
 
-        OnTokenValidated = context =>
-        {
-            Console.WriteLine("[JWT] Token validado com sucesso!");
-            return Task.CompletedTask;
-        },
 
-        OnAuthenticationFailed = context =>
-        {
-            // Isso vai printar o motivo EXATO no console da sua aplicação quando der erro
-            Console.WriteLine($"[JWT] Falha na validação do Token: {context.Exception.Message}");
-            return Task.CompletedTask;
-        },
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//})
+//.AddJwtBearer(options =>
+//{
+//    options.RequireHttpsMetadata = false; // tenho que mudar para true quando colocar em produção
+//    options.SaveToken = true;  // Salva o token no contexto da requisição
 
-        OnChallenge = context =>
-        {
-            context.HandleResponse();
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-            var resultado = new { message = "Não autorizado. Você precisa enviar um token JWT válido no Header." };
-            return context.Response.WriteAsJsonAsync(resultado);
-        },
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuerSigningKey = true, // Valida a chave de assinatura do token
+//        IssuerSigningKey = new SymmetricSecurityKey(keyBytes), // Define a chave de assinatura usada para validar o token
+//        ValidateIssuer = false, // Não valida o emissor
+//        ValidateAudience = false, // Não valida o público
+//        ClockSkew = TimeSpan.Zero // isso significa que não vai aceita  tolerancia de tokem espirado, ex. 5min de atraso
+//    };
 
-        OnForbidden = context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            context.Response.ContentType = "application/json";
-            var resultado = new { message = "Você não tem permissão para acessar este recurso." };
-            return context.Response.WriteAsJsonAsync(resultado);
-        }
-    };
+//    options.Events = new JwtBearerEvents
+//    {
+//        OnMessageReceived = context =>
+//        {
+//            var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+//            Console.WriteLine($"[JWT] Token recebido no Header: {authorizationHeader}");
+//            return Task.CompletedTask;
+//        },
 
-});
+//        OnTokenValidated = context =>
+//        {
+//            Console.WriteLine("[JWT] Token validado com sucesso!");
+//            return Task.CompletedTask;
+//        },
+
+//        OnAuthenticationFailed = context =>
+//        {
+//            // Isso vai printar o motivo EXATO no console da sua aplicação quando der erro
+//            Console.WriteLine($"[JWT] Falha na validação do Token: {context.Exception.Message}");
+//            return Task.CompletedTask;
+//        },
+
+//        OnChallenge = context =>
+//        {
+//            context.HandleResponse();
+//            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+//            context.Response.ContentType = "application/json";
+//            var resultado = new { message = "Não autorizado. Você precisa enviar um token JWT válido no Header." };
+//            return context.Response.WriteAsJsonAsync(resultado);
+//        },
+
+//        OnForbidden = context =>
+//        {
+//            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+//            context.Response.ContentType = "application/json";
+//            var resultado = new { message = "Você não tem permissão para acessar este recurso." };
+//            return context.Response.WriteAsJsonAsync(resultado);
+//        }
+//    };
+
+//});
 
 // Configura a autorização
 builder.Services.AddAuthorization();
@@ -205,33 +210,6 @@ app.UseSwagger();
 //}
 
 
-// Método auxiliar para gerar tokens JWT
-// Método auxiliar para gerar tokens JWT (usando o Id em string do usuário)
-//string GenerateJwtToken(User user)
-//{
-//    var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
-//    var tokenDescriptor = new SecurityTokenDescriptor
-//    {
-//        // NameIdentifier passa a armazenar o ID do usuário como string (GUID)
-//        Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Id) }),
-
-//        // Expiração de 2 horas
-//        Expires = DateTime.UtcNow.AddHours(2),
-
-//        // Define a chave de assinatura e o algoritmo
-//        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
-//    };
-
-//    var token = tokenHandler.CreateToken(tokenDescriptor);
-//    return tokenHandler.WriteToken(token);
-//}
-
-// Este método extrai o ID do usuário a partir das claims do token JWT retornando como string
-//string GetUserId(ClaimsPrincipal userPrincipal) =>
-//    userPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
-
-
-
 
 
 
@@ -297,8 +275,6 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service, 
 
 
 
-
-
 // --  ROTA DE CRIAÇÃO DE URL ENCURTADA
 app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,   ClaimsPrincipal userClaims) =>
 {
@@ -325,59 +301,6 @@ app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,  
     }
 }).RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
-
-
-
-
-//app.MapGet("/api/v1/urls", async (ClaimsPrincipal userPrincipal, AppDbContext db, int page = 1, int limit = 10) =>
-//{
-//    try
-//    {
-//        string userId = GetUserId(userPrincipal);
-//        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
-
-//        // Garantir paginação mínima válida
-//        if (page < 1) page = 1;
-//        if (limit < 1 || limit > 50) limit = 10;
-
-
-//        // Consulta base filtrando pelo usuário logado
-//        var query = db.Urls.Where(u => u.UserId == userId);
-//        // Conta o total de registros para paginação
-//        var total = await query.CountAsync();
-
-//        var data = await query
-//            .OrderByDescending(u => u.CreatedAt)
-//            .Skip((page - 1) * limit)
-//            .Take(limit)
-//            .Select(u => new
-//            {
-//                IsActive  = u.IsActive,
-//                ClickCount = u.ClickCount,
-//                ExpiresAt = u.ExpiresAt,
-//                LastAccessedAt = u.LastAccessedAt,
-//                IdOfuscado = u.IdOfuscado,
-//                OriginalUrl = u.OriginalUrl
-
-
-//            })
-//            .ToListAsync();
-
-//        return Results.Ok(new
-//        {
-//            data,
-//            page,
-//            limit,
-//            total
-//        });
-//    }
-//    catch
-//    {
-//        return Results.StatusCode(500); // Internal Server Error
-//    }
-
-//}).WithSummary("Lista URLs paginadas")
-//.WithDescription("Retorna uma lista paginada de URLs do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
 // -- ROTA DE LISTAGEM DE URLS ENCURTADAS COM PAGINAÇÃO

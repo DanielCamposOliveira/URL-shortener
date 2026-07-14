@@ -2,7 +2,7 @@
 {
     public record CreateUrlRequest(string Url);
 
-    public class ExportPagUrlDTO
+    public class PageUrlDTO
     {
         public bool IsActive { get; set; }
         public int ClickCount { get; set; }
@@ -14,7 +14,7 @@
 
     public class ExportPagUrlResponse
     {
-        public List<ExportPagUrlDTO> Urls { get; set; } = new List<ExportPagUrlDTO>();
+        public List<PageUrlDTO> Urls { get; set; } = new List<PageUrlDTO>();
         public int Page { get; set; }
         public int Limit { get; set; }
         public int TotalCount { get; set; }
