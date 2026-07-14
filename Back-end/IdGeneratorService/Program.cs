@@ -29,7 +29,7 @@ var app = builder.Build();
 
 
 // Rota oficial para gerar IDs. Retorna tanto o ID numérico quanto o ID ofuscado.
-app.MapGet("/gerar-id", (SnowflakeGenerator gerador, Hashids hashids) =>
+app.MapGet("/api/v1/identificadores", (SnowflakeGenerator gerador, Hashids hashids) =>
 {
     // Gera o número Snowflake à prova de colisões
     long numericId = gerador.GerarProximoId();
