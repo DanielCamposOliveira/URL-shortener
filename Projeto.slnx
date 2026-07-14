@@ -1,6 +1,6 @@
 <Solution>
     <Folder Name="/Back-End/">
-        <Project Path="API-Data/API-Data.csproj" Id="3b4b1580-85ad-476a-b0f4-f28cb06ad85b" />
+        <Project Path="Back-end\API-Data\API-Data.csproj" />
         <Project Path="Back-end\IdGeneratorService/IdGeneratorService.csproj" />
     </Folder>
     <Folder Name="/Front-end/">
