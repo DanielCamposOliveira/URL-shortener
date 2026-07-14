@@ -1,6 +1,7 @@
 using API_Data.src.Data;
 using API_Data.src.DTOs;
 using API_Data.src.Models;
+using API_Data.src.Repository;
 using API_Data.src.Services;
 using API_Data.src.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +15,9 @@ Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+builder.Services.AddScoped<IUrlRepository, UrlRepository>();
+builder.Services.AddScoped<IUrlService, UrlService>();
 
 // Recupera a string de conexão do appsettings.json de Conexão com o PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQLConnection");
@@ -293,41 +297,69 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest req, AppDbContext db, ICon
 
 
 // ROTA DE CRIAÇÃO DE URL ENCURTADA
-app.MapPost("/api/v1/urls", async (CreateUrlRequest req, IdGeneratorClient idClient, AppDbContext db, ClaimsPrincipal userClaims) =>
+//app.MapPost("/api/v1/urls", async (CreateUrlRequest req, IdGeneratorClient idClient, AppDbContext db, ClaimsPrincipal userClaims) =>
+//{
+//    try
+//    {
+//        var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+//        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
+
+//        // Consome a API 1 para obter o ID Snowflake e o IdOfuscado (Base62)
+//        var idData = await idClient.GenerateIdAsync();
+//        if (idData == null)
+//            return Results.StatusCode(500); // Erro interno se a API de IDs falhar
+
+//        var urlObj = new Url
+//        {
+//            Id = idData.IdNumerico,
+//            IdOfuscado = idData.IdOfuscado,
+//            OriginalUrl = req.Url,
+//            UserId = userId
+//        };
+
+//        db.Urls.Add(urlObj);
+//        await db.SaveChangesAsync();
+
+//        return Results.Created($"/api/v1/urls/{urlObj.IdOfuscado}", new
+//        {
+//            idOfuscado = urlObj.IdOfuscado,
+//            urlEncurtada = $"https://meusite.com/{urlObj.IdOfuscado}"
+//        });
+//    }
+//    catch
+//    {
+//        return Results.StatusCode(500);
+//    }
+
+//}).RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
+
+// ROTA DE CRIAÇÃO DE URL ENCURTADA
+app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,   ClaimsPrincipal userClaims) =>
 {
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
     try
     {
-        var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
+        var url = await service.CriarUrlAsync(req.Url, userId);
 
-        // Consome a API 1 para obter o ID Snowflake e o IdOfuscado (Base62)
-        var idData = await idClient.GenerateIdAsync();
-        if (idData == null)
-            return Results.StatusCode(500); // Erro interno se a API de IDs falhar
-
-        var urlObj = new Url
+        return Results.Created($"/api/v1/urls/{url.IdOfuscado}", new
         {
-            Id = idData.IdNumerico,
-            IdOfuscado = idData.IdOfuscado,
-            OriginalUrl = req.Url,
-            UserId = userId
-        };
-
-        db.Urls.Add(urlObj);
-        await db.SaveChangesAsync();
-
-        return Results.Created($"/api/v1/urls/{urlObj.IdOfuscado}", new
-        {
-            idOfuscado = urlObj.IdOfuscado,
-            urlEncurtada = $"https://meusite.com/{urlObj.IdOfuscado}"
+            idOfuscado = url.IdOfuscado,
+            urlEncurtada = $"https://meusite.com/{url.IdOfuscado}"
         });
     }
     catch
     {
         return Results.StatusCode(500);
     }
-
 }).RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
 
 
 
