@@ -240,6 +240,33 @@ app.MapGet("/{idOfuscado}", async (string idOfuscado, IUrlService service) =>
 .WithDescription("Redireciona para a URL original correspondente ao ID ofuscado fornecido.");
 
 
+
+// -- ROTA DE EXCLUSÃO DE USUARIO
+app.MapDelete("/api/v1/user/{idOfuscado}", async (string idOfuscado, IUrlService service, ClaimsPrincipal userClaims) =>
+{
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var result = await service.DeleteUser(userId);
+
+    return result;
+
+}).WithSummary("DELETE USER").WithTags("Administrator")
+.WithDescription("Exclui usuário").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
+
+
+
+
+
+
+
+
+
 app.Run();
 
 

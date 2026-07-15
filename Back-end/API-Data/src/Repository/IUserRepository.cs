@@ -10,5 +10,8 @@ namespace API_Data.src.Repository
         Task<OperationResult> RegisterUserAsync(RegisterRequest user);
 
         Task<User?> GetUserByEmailAsync(string email);
+
+
+        Task<OperationResult> DeleteUserAsync(string userId);
     }
 }

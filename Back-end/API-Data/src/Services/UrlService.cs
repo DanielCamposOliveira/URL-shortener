@@ -68,6 +68,49 @@ namespace API_Data.src.Services
 
         }
 
+        private async Task<OperationResult> IsAdminUser(string userId)
+        {
+            // verifica se o Id esta vazio
+            if (string.IsNullOrEmpty(userId))
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = "userId não informado"
+                };
+
+            // Busca usuario
+            var User = await _userRepository.GetUserByIdAsync(userId);
+
+
+            if (User == null)
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = "Usuario não encontrado"
+                };
+
+            if (User.IsActive == false)
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = "Usuario Desativado"
+                };
+
+            if (User.IsAdmin == false)
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = "Usuario sem permissão"
+                };
+
+            return new OperationResult
+            {
+                Success = true,
+                Message = ""
+            };
+
+        }
+
         // -- Registrar um novo usuário
         public async Task<IResult> PostRegisterUserAsync(RegisterRequest user)
         {
@@ -199,7 +242,8 @@ namespace API_Data.src.Services
             if (!result.Success)
                 return Results.BadRequest(new { message = result.Message });
 
-            return Results.Ok(new { message = "URL deletada com sucesso." });
+            return Results.NoContent();
+            //return Results.Ok(new { message = "URL deletada com sucesso." });
         }
 
 
@@ -246,5 +290,20 @@ namespace API_Data.src.Services
         }
 
 
+        public async Task<IResult> DeleteUser(string userId)
+        {
+            var resultUser = await IsAdminUser(userId);
+            if (!resultUser.Success)
+                return Results.BadRequest(new { message = resultUser.Message });
+
+            var result = await _userRepository.DeleteUserAsync(userId);
+
+            if (!result.Success)
+                return Results.BadRequest(new { message = resultUser.Message });
+
+            return Results.NoContent();
+
+
+        }
     }
 }

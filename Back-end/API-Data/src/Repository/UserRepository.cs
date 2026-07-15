@@ -30,12 +30,12 @@ namespace API_Data.src.Repository
         }
 
         // -- Busca um usuário pelo ID no banco de dados
-        public async Task<User?> GetUserByIdAsync(string id)
+        public async Task<User?> GetUserByIdAsync(string userId)
         {
             try
             {
                 // Verifica se existe um usuário com o ID fornecido no banco de dados
-                var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id);
+                var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId);
                 return user;
             }
             catch (Exception ex)
@@ -88,5 +88,43 @@ namespace API_Data.src.Repository
                 };
             }
         }
+
+        public async Task<OperationResult> DeleteUserAsync(string userId)
+        {
+            try
+            {
+                // Busca a URL pelo IdOfuscado no banco de dados
+                var User = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (User == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "Usuario não encontrada."
+                    };
+                }
+
+                // Remove a URL do banco de dados e salva as alterações
+                _db.Users.Remove(User);
+                // Salva as alterações no banco de dados
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = "Usuario removida com sucesso."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
     }
 }
