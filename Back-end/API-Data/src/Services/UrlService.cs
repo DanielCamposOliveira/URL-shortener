@@ -99,9 +99,24 @@ namespace API_Data.src.Services
             return data;
         }
 
+        public async Task<IResult> PostRegisterUserAsync(RegisterRequest user)
+        {
+            try
+            {
+                // Registrar o usuário no repositório
+                var result = await _urlRepository.RegisterUserAsync(user);
 
+                // Verificar se o registro foi bem-sucedido
+                if (!result.Success)
+                    return Results.BadRequest(new { message = result.Message });
 
-
+                return Results.Created(); // 201 Created
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message, statusCode: 500);
+            }
+        }
 
 
 

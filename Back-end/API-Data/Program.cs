@@ -5,9 +5,7 @@ using API_Data.src.Models;
 using API_Data.src.Repository;
 using API_Data.src.Services;
 using API_Data.src.Utils;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -56,67 +54,6 @@ builder.Services.AddJwtAuthentication(jwtKey);
 
 
 
-
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//})
-//.AddJwtBearer(options =>
-//{
-//    options.RequireHttpsMetadata = false; // tenho que mudar para true quando colocar em produção
-//    options.SaveToken = true;  // Salva o token no contexto da requisição
-
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuerSigningKey = true, // Valida a chave de assinatura do token
-//        IssuerSigningKey = new SymmetricSecurityKey(keyBytes), // Define a chave de assinatura usada para validar o token
-//        ValidateIssuer = false, // Não valida o emissor
-//        ValidateAudience = false, // Não valida o público
-//        ClockSkew = TimeSpan.Zero // isso significa que não vai aceita  tolerancia de tokem espirado, ex. 5min de atraso
-//    };
-
-//    options.Events = new JwtBearerEvents
-//    {
-//        OnMessageReceived = context =>
-//        {
-//            var authorizationHeader = context.Request.Headers["Authorization"].ToString();
-//            Console.WriteLine($"[JWT] Token recebido no Header: {authorizationHeader}");
-//            return Task.CompletedTask;
-//        },
-
-//        OnTokenValidated = context =>
-//        {
-//            Console.WriteLine("[JWT] Token validado com sucesso!");
-//            return Task.CompletedTask;
-//        },
-
-//        OnAuthenticationFailed = context =>
-//        {
-//            // Isso vai printar o motivo EXATO no console da sua aplicação quando der erro
-//            Console.WriteLine($"[JWT] Falha na validação do Token: {context.Exception.Message}");
-//            return Task.CompletedTask;
-//        },
-
-//        OnChallenge = context =>
-//        {
-//            context.HandleResponse();
-//            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-//            context.Response.ContentType = "application/json";
-//            var resultado = new { message = "Não autorizado. Você precisa enviar um token JWT válido no Header." };
-//            return context.Response.WriteAsJsonAsync(resultado);
-//        },
-
-//        OnForbidden = context =>
-//        {
-//            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-//            context.Response.ContentType = "application/json";
-//            var resultado = new { message = "Você não tem permissão para acessar este recurso." };
-//            return context.Response.WriteAsJsonAsync(resultado);
-//        }
-//    };
-
-//});
 
 // Configura a autorização
 builder.Services.AddAuthorization();
@@ -224,33 +161,40 @@ app.UseSwagger();
 
 
 // ROTA DE REGISTRO DE USUÁRIO
-app.MapPost("/api/v1/auth/register", async (RegisterRequest req, AppDbContext db) =>
+//app.MapPost("/api/v1/auth/register", async (RegisterRequest req, AppDbContext db) =>
+//{
+//    try
+//    {
+//        if (await db.Users.AnyAsync(u => u.Email == req.Email))
+//            return Results.BadRequest(new { message = "E-mail já cadastrado." });
+
+//        var user = new User
+//        {
+//            Name = req.Name,
+//            Email = req.Email,
+//            PasswordHash = PasswordHasher.HashPassword(req.Password)
+//        };
+
+//        db.Users.Add(user);
+//        await db.SaveChangesAsync();
+
+//        return Results.StatusCode(201); // 201 Created
+//    }
+//    catch
+//    {
+//        return Results.StatusCode(500); // Internal Server Error
+//    }
+
+//}).WithSummary("Register")
+//.WithDescription("Registra um novo usuário e retorna um status de sucesso.");
+
+app.MapPost("/api/v1/auth/register", async (RegisterRequest req, IUrlService service) =>
 {
-    try
-    {
-        if (await db.Users.AnyAsync(u => u.Email == req.Email))
-            return Results.BadRequest(new { message = "E-mail já cadastrado." });
-
-        var user = new User
-        {
-            Name = req.Name,
-            Email = req.Email,
-            PasswordHash = PasswordHasher.HashPassword(req.Password)
-        };
-
-        db.Users.Add(user);
-        await db.SaveChangesAsync();
-
-        return Results.StatusCode(201); // 201 Created
-    }
-    catch
-    {
-        return Results.StatusCode(500); // Internal Server Error
-    }
+    var result = await service.PostRegisterUserAsync(req);
+    return result;
 
 }).WithSummary("Register")
 .WithDescription("Registra um novo usuário e retorna um status de sucesso.");
-
 
 
 // -- ROTA DE LOGIN DE USUÁRIO

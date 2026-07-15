@@ -10,5 +10,9 @@ namespace API_Data.src.Services
         Task<Url> CriarUrlAsync(string url, string userId);
 
         Task<ExportPagUrlResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit);
+
+
+        Task<IResult> PostRegisterUserAsync(RegisterRequest User);
+
     }
 }

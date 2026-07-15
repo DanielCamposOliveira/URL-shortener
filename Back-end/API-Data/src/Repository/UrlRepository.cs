@@ -1,8 +1,9 @@
 ﻿using API_Data.src.Data;
 using API_Data.src.DTOs;
 using API_Data.src.Models;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using API_Data.src.Utils;
 using Microsoft.EntityFrameworkCore;
+using static API_Data.src.DTOs.UserDtos;
 
 namespace API_Data.src.Repository
 {
@@ -29,6 +30,50 @@ namespace API_Data.src.Repository
             _db.Urls.Add(url);
             // Salvar as alterações no banco de dados
             await _db.SaveChangesAsync();
+        }
+
+        // Registra um novo usuário no banco de dados
+        public async Task<OperationResult> RegisterUserAsync(RegisterRequest user)
+        {
+            try
+            {
+                // Verifica se o e-mail já está cadastrado no banco de dados
+                if (await _db.Users.AnyAsync(u => u.Email == user.Email))                    
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "E-mail já cadastrado."
+                    };
+                }               
+
+                // Cria um novo usuário com os dados fornecidos e o hash da senha
+                var newUser = new User
+                {
+                    Name = user.Name,
+                    Email = user.Email,
+                    PasswordHash = PasswordHasher.HashPassword(user.Password)
+                };
+
+                // Adiciona o usuário ao banco de dados
+                _db.Users.Add(newUser);
+                //salva as alterações
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = "Usuário cadastrado com sucesso."
+                };              
+            }
+            catch (Exception ex) 
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
         }
 
         // Busca um usuário pelo email no banco de dados
@@ -73,7 +118,7 @@ namespace API_Data.src.Repository
         }
 
 
-
+       
 
 
 
