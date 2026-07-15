@@ -41,6 +41,7 @@ namespace API_Data.src.Repository
             }
         }
 
+        // -- Busca um usuário pelo ID no banco de dados
         public async Task<User?> GetUserByIdAsync(string id)
         {
             try
@@ -191,19 +192,6 @@ namespace API_Data.src.Repository
             }
         }
 
-        public async Task<Url?> GetUrlByIdIsActiveAsync(string idOfuscado)
-        {
-            try
-            {
-                // Verifica se existe um usuário com o ID fornecido no banco de dados
-                var url = await _db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado && u.IsActive);
-                return url;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
 
         // -- Remove uma URL do banco de dados pelo IdOfuscado
         public async Task<OperationResult> DeleteUrlAsync(string idOfuscado)
@@ -243,6 +231,8 @@ namespace API_Data.src.Repository
             }
         }
 
+
+        // -- Incrementa o contador de cliques e retorna a URL original pelo IdOfuscado
         public async Task<OperationResult> ClickUrlAsync(string idOfuscado)
         { 
             try
@@ -283,6 +273,46 @@ namespace API_Data.src.Repository
             }
         }
 
+
+        // -- Alterna o status de ativação de uma URL pelo IdOfuscado
+        public async Task<OperationResult> DeactivateUrlAsync(string idOfuscado)
+        {
+            try
+            {
+                // Busca a URL pelo IdOfuscado no banco de dados
+                var url = await _db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado);
+
+                if (url == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "URL não encontrada."
+                    };
+                }
+
+                // Alterna o valor de IsActive
+                url.IsActive = !url.IsActive;
+
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = url.IsActive
+                        ? "URL ativada com sucesso."
+                        : "URL desativada com sucesso."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
 
     }
 }

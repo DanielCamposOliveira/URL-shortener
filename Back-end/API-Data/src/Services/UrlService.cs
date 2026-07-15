@@ -44,7 +44,6 @@ namespace API_Data.src.Services
         }
 
 
-
         // -- Busca o usuário pelo email e senha, e retorna um token JWT se a autenticação for bem-sucedida
         public async Task<IResult> PostAuthenticationUserAsync(LoginRequest req)
         {
@@ -120,7 +119,7 @@ namespace API_Data.src.Services
         }
 
 
-        //  Deletar uma URL específica para um usuário específico
+        // -- Deletar uma URL específica para um usuário específico
         public async Task<IResult> DeleteUrlAsync(string userId, string idOfuscado)
         {
             // Validar o ID ofuscado
@@ -151,6 +150,31 @@ namespace API_Data.src.Services
         }
 
 
+        // -- Desativar uma URL específica para um usuário específico
+        public async Task<IResult> DeactivateUrlAsync(string userId, string idOfuscado)
+        {
+            // Busca a URL pelo ID ofuscado
+            var Url = await _urlRepository.GetUrlByIdAsync(idOfuscado); // Obter a URL pelo ID ofuscado
+
+            // Verificar se a URL existe
+            if (Url == null)
+                return Results.NotFound();
+
+            // Verificar se o usuário é o dono do link
+            if (userId != Url.UserId)
+                return Results.Forbid(); // 403 se não for dono do link
+
+            // Tentar desativar a URL usando o repositório
+            var result = await _urlRepository.DeactivateUrlAsync(idOfuscado);
+
+            // Verificar se a operação foi bem-sucedida
+            if (!result.Success)
+                return Results.BadRequest(new { message = result.Message });
+
+            return Results.Ok(new { message = result.Message });
+        }
+
+
         // -- Obter a URL original pelo ID ofuscado e registrar o clique
         public async Task<OperationResult> GetUrlByIdAsync(string idOfuscado)
         {
@@ -162,6 +186,7 @@ namespace API_Data.src.Services
                 Message = clickResult.Message
             };
         }
+
 
     }
 }

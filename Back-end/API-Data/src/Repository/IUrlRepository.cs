@@ -21,5 +21,7 @@ namespace API_Data.src.Repository
         Task<Url?> GetUrlByIdAsync(string idOfuscado);
 
         Task<OperationResult> ClickUrlAsync(string idOfuscado);
+
+        Task<OperationResult> DeactivateUrlAsync(string idOfuscado);
     }
 }

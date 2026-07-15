@@ -181,7 +181,6 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service) 
 .WithDescription("Autentica o usuário e retorna um token JWT.");
 
 
-
 // --  ROTA DE CRIAÇÃO DE URL ENCURTADA
 app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,   ClaimsPrincipal userClaims) =>
 {
@@ -199,7 +198,6 @@ app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,  
     return result;
 
 }).RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
-
 
 
 // -- ROTA DE LISTAGEM DE URLS ENCURTADAS COM PAGINAÇÃO
@@ -220,8 +218,7 @@ app.MapGet("/api/v1/urls", async (ClaimsPrincipal userClaims, IUrlService servic
 .WithDescription("Retorna uma lista paginada de URLs do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
-
-// ROTA DE EXCLUSÃO DE URL ENCURTADA
+// -- ROTA DE EXCLUSÃO DE URL ENCURTADA
 app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService service, ClaimsPrincipal userClaims) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
@@ -239,48 +236,25 @@ app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService
 .WithDescription("Exclui uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
-//// ROTA DE REDIRECIONAMENTO
-//app.MapGet("/{idOfuscado}", async (string idOfuscado, AppDbContext db) =>
-//{
-//    // A query abaixo utiliza o Unique Index definido no Context do EF Core.
-//    // O banco de dados buscará apenas no índice de forma extremamente rápida, sem "Key Lookup".
-//    var urlData = await db.Urls
-//        .Where(u => u.IdOfuscado == idOfuscado && u.IsActive)
-//        .Select(u => new { u.Id, u.OriginalUrl, u.ExpiresAt })
-//        .FirstOrDefaultAsync();
+// -- ROTA DE DESATIVAÇÃO DE URL ENCURTADA
+app.MapPatch("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService service, ClaimsPrincipal userClaims) =>
+{
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-//    // Se não encontrar o registro, retorna 404 Not Found
-//    if (urlData == null) return Results.NotFound();
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
 
-//    // Valida expiração de data se configurado
-//    if (urlData.ExpiresAt.HasValue && urlData.ExpiresAt.Value < DateTimeOffset.UtcNow)
-//        return Results.NotFound();
+    var result = await service.DeactivateUrlAsync(userId, idOfuscado);
 
+    return result;
 
-//    // Incrementa estatísticas em segundo plano para não travar a resposta de redirecionamento
-//    _ = Task.Run(async () =>
-//    {
-//        try
-//        {
-//            using var scope = app.Services.CreateScope();
-//            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-//            var record = await context.Urls.FindAsync(urlData.Id);
-//            if (record != null)
-//            {
-//                record.ClickCount++;
-//                record.LastAccessedAt = DateTimeOffset.UtcNow;
-//                await context.SaveChangesAsync();
-//            }
-//        }
-//        catch { /* Silencia erros de background thread para não impactar o usuário */ }
-//    });
-
-//    return Results.Redirect(urlData.OriginalUrl, permanent: false); // Redirecionamento 302 Found
-//}).WithSummary("Redireciona para a URL original")
-//.WithDescription("Redireciona para a URL original correspondente ao ID ofuscado fornecido.");
+}).WithSummary("Desativa uma URL encurtada")
+.WithDescription("Desativa uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
-// ROTA DE REDIRECIONAMENTO
+// --ROTA DE REDIRECIONAMENTO
 app.MapGet("/{idOfuscado}", async (string idOfuscado, IUrlService service) =>
 {
 
