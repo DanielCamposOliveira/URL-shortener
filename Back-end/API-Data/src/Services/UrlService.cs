@@ -119,8 +119,35 @@ namespace API_Data.src.Services
             return data;
         }
 
+        public async Task<IResult> DeleteUrlAsync(string userId, string idOfuscado)
+        {
+            // Validar o ID ofuscado
+            if (string.IsNullOrEmpty(idOfuscado))
+                return Results.BadRequest(new { message = "ID inválido." });
+                      
+            // Busca a URL pelo ID ofuscado
+            var Url = await _urlRepository.GetUrlByIdAsync(idOfuscado); // Obter a URL pelo ID ofuscado
 
-   
+            // Verificar se a URL existe
+            if (Url == null) 
+                return Results.NotFound();
+
+            // Verificar se o usuário é o dono do link
+            if (userId != Url.UserId)
+                return Results.Forbid(); // 403 se não for dono do link
+                        
+            // Tentar deletar a URL usando o repositório
+            var result = await _urlRepository.DeleteUrlAsync(idOfuscado);
+
+
+            // Verificar se a operação foi bem-sucedida
+            if (!result.Success)
+                return Results.BadRequest(new { message = result.Message });
+
+
+            return Results.Ok(new { message = "URL deletada com sucesso." });
+        }
+
 
 
 

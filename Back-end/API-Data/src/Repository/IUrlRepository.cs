@@ -14,5 +14,10 @@ namespace API_Data.src.Repository
 
         Task<OperationResult> RegisterUserAsync(RegisterRequest user);
 
+        Task<OperationResult> DeleteUrlAsync(string idOfuscado);
+
+        Task<User?> GetUserByIdAsync(string id);
+
+        Task<Url?> GetUrlByIdAsync(string idOfuscado);
     }
 }

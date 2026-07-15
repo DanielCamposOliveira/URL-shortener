@@ -219,41 +219,57 @@ app.MapGet("/api/v1/urls", async (ClaimsPrincipal userClaims, IUrlService servic
 }).WithSummary("Lista URLs paginadas")
 .WithDescription("Retorna uma lista paginada de URLs do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
-      
 
 
+
+
+//// ROTA DE EXCLUSÃO DE URL ENCURTADA
+//app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, AppDbContext db, ClaimsPrincipal userClaims) =>
+//{
+//    try
+//    {
+//        // Recupera o ID do usuário logado a partir das claims do token JWT
+//        var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+//        // Se não houver ID de usuário, retorna 401 Unauthorized
+//        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
+
+//        // Busca a URL pelo ID ofuscado no banco de dados
+//        var url = await db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado);
+//        if (url == null) return Results.NotFound();
+
+//        if (url.UserId != userId) return Results.Forbid(); // 403 se não for dono do link
+
+//        // Remove a URL do banco de dados e salva as alterações
+//        db.Urls.Remove(url);
+//        await db.SaveChangesAsync();
+
+//        return Results.NoContent();
+//    }
+//    catch
+//    {
+//        return Results.StatusCode(500); // Internal Server Error
+//    }
+
+//}).WithSummary("Exclui uma URL encurtada")
+//.WithDescription("Exclui uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 // ROTA DE EXCLUSÃO DE URL ENCURTADA
-app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, AppDbContext db, ClaimsPrincipal userClaims) =>
+app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService service, ClaimsPrincipal userClaims) =>
 {
-    try
-    {
-        // Recupera o ID do usuário logado a partir das claims do token JWT
-        var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        // Se não houver ID de usuário, retorna 401 Unauthorized
-        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
 
-        // Busca a URL pelo ID ofuscado no banco de dados
-        var url = await db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado);
-        if (url == null) return Results.NotFound();
+    var result = await service.DeleteUrlAsync(userId, idOfuscado);
 
-        if (url.UserId != userId) return Results.Forbid(); // 403 se não for dono do link
-
-        // Remove a URL do banco de dados e salva as alterações
-        db.Urls.Remove(url);
-        await db.SaveChangesAsync();
-
-        return Results.NoContent();
-    }
-    catch
-    {
-        return Results.StatusCode(500); // Internal Server Error
-    }
+    return result;       
 
 }).WithSummary("Exclui uma URL encurtada")
 .WithDescription("Exclui uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
-
 
 
 // ROTA DE REDIRECIONAMENTO

@@ -10,11 +10,11 @@ namespace API_Data.src.Services
 
         Task<IResult> RegisterUrlAsync(string url, string userId);
 
-        //
         Task<ExportPagUrlResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit);
 
-        //
         Task<IResult> PostRegisterUserAsync(RegisterRequest User);
+
+        Task<IResult> DeleteUrlAsync(string userId, string idOfuscado);
 
     }
 }

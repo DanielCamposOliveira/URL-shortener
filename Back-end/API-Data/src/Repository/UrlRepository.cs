@@ -41,6 +41,20 @@ namespace API_Data.src.Repository
             }
         }
 
+        public async Task<User?> GetUserByIdAsync(string id)
+        {
+            try
+            {
+                // Verifica se existe um usuário com o ID fornecido no banco de dados
+                var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == id);
+                return user;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
 
         // -- Registra um novo usuário no banco de dados
         public async Task<OperationResult> RegisterUserAsync(RegisterRequest user)
@@ -112,6 +126,7 @@ namespace API_Data.src.Repository
             }
         }
 
+
         // -- Busca uma página de URLs associadas a um usuário pelo userId, com paginação
         public async Task<ExportPagUrlResponse> GetUrlPageAsync(string userId, int page, int limit)
         {
@@ -162,8 +177,57 @@ namespace API_Data.src.Repository
         }
 
 
-       
+        public async Task<Url?> GetUrlByIdAsync(string idOfuscado)
+        {
+            try
+            {
+                // Verifica se existe um usuário com o ID fornecido no banco de dados
+                var url = await _db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado); 
+                return url;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
 
+        // -- Remove uma URL do banco de dados pelo IdOfuscado
+        public async Task<OperationResult> DeleteUrlAsync(string idOfuscado)
+        {
+            try
+            {
+                // Busca a URL pelo IdOfuscado no banco de dados
+                var url = await _db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado);
+                              
+                if (url == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "URL não encontrada."
+                    };
+                }
+
+                // Remove a URL do banco de dados e salva as alterações
+                _db.Urls.Remove(url);
+                // Salva as alterações no banco de dados
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = "URL removida com sucesso."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
 
 
     }
