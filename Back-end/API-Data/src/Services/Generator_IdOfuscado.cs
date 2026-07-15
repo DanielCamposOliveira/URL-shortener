@@ -1,14 +1,13 @@
-﻿using System.Net.Http.Json;
+﻿using API_Data.src.Services.Interface;
 
 namespace API_Data.src.Services
 {
     public record IdGeneratorResponse(long IdNumerico, string IdOfuscado, int MaquinaOrigem);
-
-    public class IdGeneratorClient
+    public class Generator_IdOfuscado : IGenerator_IdOfuscado
     {
         private readonly HttpClient _httpClient;
 
-        public IdGeneratorClient(HttpClient httpClient)
+        public Generator_IdOfuscado(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
@@ -17,7 +16,6 @@ namespace API_Data.src.Services
         {
             try
             {
-                // Consome a rota descrita na API 1
                 return await _httpClient.GetFromJsonAsync<IdGeneratorResponse>("/api/v1/identificadores");
             }
             catch

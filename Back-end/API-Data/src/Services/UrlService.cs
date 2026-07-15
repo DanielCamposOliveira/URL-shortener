@@ -1,8 +1,7 @@
 ﻿using API_Data.src.DTOs;
 using API_Data.src.Models;
-using API_Data.src.Repository;
-using API_Data.src.Utils;
-using static API_Data.src.DTOs.UserDtos;
+using API_Data.src.Repository.Interface;
+using API_Data.src.Services.Interface;
 
 namespace API_Data.src.Services
 {
@@ -19,16 +18,15 @@ namespace API_Data.src.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IUrlRepository _urlRepository;
-        private readonly IdGeneratorClient _idClient;
-        private readonly IJwtService _jwtService;
+        private readonly IGenerator_IdOfuscado _idClient;
+        
         private readonly ILogger<UrlService> _logger;
 
-        public UrlService(IUrlRepository urlRepository, IUserRepository userRepository, IdGeneratorClient idClient, IJwtService jwtService, ILogger<UrlService> logger)
+        public UrlService(IUrlRepository urlRepository, IUserRepository userRepository, IGenerator_IdOfuscado idClient, ILogger<UrlService> logger)
         {
             _urlRepository = urlRepository;
             _userRepository = userRepository;
             _idClient = idClient;
-            _jwtService = jwtService;
             _logger = logger;
         }
 
@@ -67,95 +65,7 @@ namespace API_Data.src.Services
             };
 
         }
-
-        private async Task<OperationResult> IsAdminUser(string userId)
-        {
-            // verifica se o Id esta vazio
-            if (string.IsNullOrEmpty(userId))
-                return new OperationResult
-                {
-                    Success = false,
-                    Message = "userId não informado"
-                };
-
-            // Busca usuario
-            var User = await _userRepository.GetUserByIdAsync(userId);
-
-
-            if (User == null)
-                return new OperationResult
-                {
-                    Success = false,
-                    Message = "Usuario não encontrado"
-                };
-
-            if (User.IsActive == false)
-                return new OperationResult
-                {
-                    Success = false,
-                    Message = "Usuario Desativado"
-                };
-
-            if (User.IsAdmin == false)
-                return new OperationResult
-                {
-                    Success = false,
-                    Message = "Usuario sem permissão"
-                };
-
-            return new OperationResult
-            {
-                Success = true,
-                Message = ""
-            };
-
-        }
-
-        // -- Registrar um novo usuário
-        public async Task<IResult> PostRegisterUserAsync(RegisterRequest user)
-        {
-            // Registrar o usuário no repositório
-            var result = await _userRepository.RegisterUserAsync(user);
-
-            // Verificar se o registro foi bem-sucedido
-            if (!result.Success)
-                return Results.BadRequest(new { message = result.Message });
-
-            return Results.Created(); // 201 Created
-        }
-
-
-        // -- Busca o usuário pelo email e senha, e retorna um token JWT se a autenticação for bem-sucedida
-        public async Task<IResult> PostAuthenticationUserAsync(LoginRequest req)
-        {
-            // Validar o email
-            if (string.IsNullOrWhiteSpace(req.Email))
-                return Results.BadRequest(new { message = "Email inválido." });
-
-            // Consultar o repositório para obter o usuário correspondente ao email
-            var user = await _userRepository.GetUserByEmailAsync(req.Email);
-
-            // Se o usuário não for encontrado, retornar null
-            if (user == null)
-                return Results.BadRequest(new { message = "Usuário não encontrado." });
-
-            // Verificar a senha usando o PasswordHasher
-            if (!PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
-               return Results.BadRequest(new { message = "Senha incorreta." });
-
-            // Verifica se o usuario esta Ativo
-            var result = await IsActiveUser(user.Id);
-            if (!result.Success)
-                return Results.BadRequest(new { message = result.Message });
-
-
-            // Gerar o token JWT usando o IJwtService
-            var token = _jwtService.GenerateToken(user);
-
-            // Retornar a resposta de autenticação com o token
-            return Results.Ok(new AuthResponse(token));
-        }
-
+            
 
         // -- Criar uma nova URL encurtada para o usuário especificado
         public async Task<IResult> RegisterUrlAsync(string url, string userId)
@@ -288,40 +198,6 @@ namespace API_Data.src.Services
                 Message = clickResult.Message
             };
         }
-
-        // -- Delet
-        public async Task<IResult> DeleteUser(string userId, string UserDelete)
-        {
-            var resultUser = await IsAdminUser(userId);
-            if (!resultUser.Success)
-                return Results.BadRequest(new { message = resultUser.Message });
-
-            var result = await _userRepository.DeleteUserAsync(UserDelete);
-
-            if (!result.Success)
-                return Results.BadRequest(new { message = resultUser.Message });
-
-            return Results.NoContent();
-
-
-        }
-
-        public async Task<IResult> DeactivateUserAsync(string userId, string UserActiver)
-        {
-            // Verifica se o usuario esta Ativo
-            var resultUser = await IsAdminUser(userId);
-            if (!resultUser.Success)
-                return Results.BadRequest(new { message = resultUser.Message });
-
-
-            // Tentar desativar a URL usando o repositório
-            var result = await _userRepository.DeactivateUserAsync(UserActiver);
-
-            // Verificar se a operação foi bem-sucedida
-            if (!result.Success)
-                return Results.BadRequest(new { message = result.Message });
-
-            return Results.Ok(new { message = result.Message });
-        }
+                
     }
 }

@@ -1,7 +1,7 @@
 ﻿using API_Data.src.Models;
 using static API_Data.src.DTOs.UserDtos;
 
-namespace API_Data.src.Repository
+namespace API_Data.src.Repository.Interface
 {
     public interface IUserRepository
     {

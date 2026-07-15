@@ -2,7 +2,9 @@ using API_Data.src.Data;
 using API_Data.src.DTOs;
 using API_Data.src.Extensions;
 using API_Data.src.Repository;
+using API_Data.src.Repository.Interface;
 using API_Data.src.Services;
+using API_Data.src.Services.Interface;
 using API_Data.src.Utils;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -16,7 +18,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IUrlRepository, UrlRepository>();
 builder.Services.AddScoped <IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUrlService, UrlService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddSingleton<IGenerator_IdOfuscado, Generator_IdOfuscado>();
+
 
 // Recupera a string de conexão do appsettings.json de Conexão com o PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQLConnection");
@@ -28,7 +33,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddSwaggerGen();
 
 // Configuração do HttpClient para API 1
-builder.Services.AddHttpClient<IdGeneratorClient>(client =>
+builder.Services.AddHttpClient<IGenerator_IdOfuscado, Generator_IdOfuscado>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["IdGeneratorUrl"] ?? "http://localhost:4849");
 });
@@ -58,7 +63,7 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,  // Permite que o contador de requisições seja reiniciado automaticamente após o período definido
-                PermitLimit = 2, // Máximo de 10 requisições...
+                PermitLimit = 2, // Máximo de requisições... coloquei 2 para testa a regra
                 Window = TimeSpan.FromSeconds(10), // ...a cada 10 segundos
                 QueueLimit = 0
             }));
@@ -126,10 +131,8 @@ app.UseSwaggerUI(c =>
 
 
 
-
-
 // -- ROTA DE REGISTRO DE USUÁRIO
-app.MapPost("/api/v1/auth/register", async (RegisterRequest req, IUrlService service) =>
+app.MapPost("/api/v1/auth/register", async (RegisterRequest req, IUserService service) =>
 {
     var result = await service.PostRegisterUserAsync(req);
     return result;
@@ -139,13 +142,14 @@ app.MapPost("/api/v1/auth/register", async (RegisterRequest req, IUrlService ser
 
 
 // -- ROTA DE LOGIN DE USUÁRIO
-app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service) =>
+app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUserService service) =>
 {
     var result = await service.PostAuthenticationUserAsync(req);
     return result; ;
 
 }).WithSummary("Login").WithTags("authentication")
 .WithDescription("Autentica o usuário e retorna um token JWT.").RequireRateLimiting("IpLimitPolicy");
+
 
 
 // --  ROTA DE CRIAÇÃO DE URL ENCURTADA
@@ -242,7 +246,7 @@ app.MapGet("/{idOfuscado}", async (string idOfuscado, IUrlService service) =>
 
 
 // -- ROTA DE EXCLUSÃO DE USUARIO
-app.MapDelete("/api/v1/user/{UserDelete}", async (string UserDelete, IUrlService service, ClaimsPrincipal userClaims) =>
+app.MapDelete("/api/v1/user/{UserDelete}", async (string UserDelete, IUserService service, ClaimsPrincipal userClaims) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
     var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -260,7 +264,7 @@ app.MapDelete("/api/v1/user/{UserDelete}", async (string UserDelete, IUrlService
 
 
 // - ROTA DE DESATIVAR USUARIO
-app.MapPatch("/api/v1/userActiver/{UserActive}", async (string UserActive, IUrlService service, ClaimsPrincipal userClaims) =>
+app.MapPatch("/api/v1/user/{UserActive}", async (string UserActive, IUserService service, ClaimsPrincipal userClaims) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
     var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;

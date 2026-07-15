@@ -1,6 +1,7 @@
 ﻿using API_Data.src.Data;
 using API_Data.src.DTOs;
 using API_Data.src.Models;
+using API_Data.src.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
 
 namespace API_Data.src.Repository

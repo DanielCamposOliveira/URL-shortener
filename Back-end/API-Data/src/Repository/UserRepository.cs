@@ -1,5 +1,6 @@
 ﻿using API_Data.src.Data;
 using API_Data.src.Models;
+using API_Data.src.Repository.Interface;
 using API_Data.src.Utils;
 using Microsoft.EntityFrameworkCore;
 using static API_Data.src.DTOs.UserDtos;
