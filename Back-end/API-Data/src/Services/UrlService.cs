@@ -30,46 +30,60 @@ namespace API_Data.src.Services
             _logger = logger;
         }
 
-        public async Task<AuthResponse> ObterUsuarioPorEmailAsync(LoginRequest req)
+        // -- Registrar um novo usuário
+        public async Task<IResult> PostRegisterUserAsync(RegisterRequest user)
+        {
+            // Registrar o usuário no repositório
+            var result = await _urlRepository.RegisterUserAsync(user);
+
+            // Verificar se o registro foi bem-sucedido
+            if (!result.Success)
+                return Results.BadRequest(new { message = result.Message });
+
+            return Results.Created(); // 201 Created
+        }
+
+
+
+        // -- Busca o usuário pelo email e senha, e retorna um token JWT se a autenticação for bem-sucedida
+        public async Task<IResult> PostAuthenticationUserAsync(LoginRequest req)
         {
             // Validar o email
-            if (string.IsNullOrEmpty(req.Email))
-                throw new Exception("Email inválido.");
+            if (string.IsNullOrWhiteSpace(req.Email))
+                return Results.BadRequest(new { message = "Email inválido." });
 
             // Consultar o repositório para obter o usuário correspondente ao email
             var user = await _urlRepository.GetUserByEmailAsync(req.Email);
 
-            // Se o usuário não for encontrado, lançar uma exceção
+            // Se o usuário não for encontrado, retornar null
             if (user == null)
-                throw new Exception("Usuário não encontrado.");
+                return Results.BadRequest(new { message = "Usuário não encontrado." });
 
             // Verificar a senha usando o PasswordHasher
-            if (user == null || !PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
-                throw new Exception("Senha inválida.");
+            if (!PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
+               return Results.BadRequest(new { message = "Senha incorreta." });
 
             // Gerar o token JWT usando o IJwtService
             var token = _jwtService.GenerateToken(user);
 
-            // Criar o objeto AuthResponse com o token gerado
-            var User = new UserDtos.AuthResponse(token);
-
-
-            return User;
-
+            // Retornar a resposta de autenticação com o token
+            return Results.Ok(new AuthResponse(token));
         }
 
-        public async Task<Url> CriarUrlAsync(string url, string userId)
+
+        // -- Criar uma nova URL encurtada para o usuário especificado
+        public async Task<IResult> RegisterUrlAsync(string url, string userId)
         {
             // Validar a URL
             if (string.IsNullOrEmpty(url) || !Uri.IsWellFormedUriString(url, UriKind.Absolute))
-                throw new Exception("URL inválida.");
+               return Results.BadRequest(new { message = "URL inválida." });
 
             // Gerar um ID único usando o IdGeneratorClient
             var idData = await _idClient.GenerateIdAsync();
 
             // Verificar se o ID foi gerado corretamente
             if (idData == null)
-                throw new Exception("Erro ao gerar ID.");
+                return Results.Problem("Erro ao gerar ID único.", statusCode: 500);
 
             // Criar a entidade Url
             var entity = new Url
@@ -81,11 +95,17 @@ namespace API_Data.src.Services
             };
 
             // Salvar a entidade no repositório
-            await _urlRepository.AddAsync(entity);
+            var result = await _urlRepository.RegisterUrlAsync(entity);
 
-            return entity;
+            // Verificar se a operação foi bem-sucedida
+            if (!result.Success)
+                return Results.BadRequest(new { message = result.Message });
+
+            return Results.Created(); // 201 Created
         }
 
+
+        // -- Obter uma lista paginada de URLs para um usuário específico
         public async Task<ExportPagUrlResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit)
         {
             // Garantir que a página seja pelo menos 1
@@ -99,25 +119,8 @@ namespace API_Data.src.Services
             return data;
         }
 
-        public async Task<IResult> PostRegisterUserAsync(RegisterRequest user)
-        {
-            try
-            {
-                // Registrar o usuário no repositório
-                var result = await _urlRepository.RegisterUserAsync(user);
 
-                // Verificar se o registro foi bem-sucedido
-                if (!result.Success)
-                    return Results.BadRequest(new { message = result.Message });
-
-                return Results.Created(); // 201 Created
-            }
-            catch (Exception ex)
-            {
-                return Results.Problem(ex.Message, statusCode: 500);
-            }
-        }
-
+   
 
 
 

@@ -160,34 +160,8 @@ app.UseSwagger();
 
 
 
-// ROTA DE REGISTRO DE USUÁRIO
-//app.MapPost("/api/v1/auth/register", async (RegisterRequest req, AppDbContext db) =>
-//{
-//    try
-//    {
-//        if (await db.Users.AnyAsync(u => u.Email == req.Email))
-//            return Results.BadRequest(new { message = "E-mail já cadastrado." });
 
-//        var user = new User
-//        {
-//            Name = req.Name,
-//            Email = req.Email,
-//            PasswordHash = PasswordHasher.HashPassword(req.Password)
-//        };
-
-//        db.Users.Add(user);
-//        await db.SaveChangesAsync();
-
-//        return Results.StatusCode(201); // 201 Created
-//    }
-//    catch
-//    {
-//        return Results.StatusCode(500); // Internal Server Error
-//    }
-
-//}).WithSummary("Register")
-//.WithDescription("Registra um novo usuário e retorna um status de sucesso.");
-
+// -- ROTA DE REGISTRO DE USUÁRIO
 app.MapPost("/api/v1/auth/register", async (RegisterRequest req, IUrlService service) =>
 {
     var result = await service.PostRegisterUserAsync(req);
@@ -198,21 +172,10 @@ app.MapPost("/api/v1/auth/register", async (RegisterRequest req, IUrlService ser
 
 
 // -- ROTA DE LOGIN DE USUÁRIO
-app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service, IConfiguration config) =>
-{  
-    try
-    {
-        // Busca o usuário no banco de dados pelo e-mail fornecido
-        var user = await service.ObterUsuarioPorEmailAsync(req);
-        if (user == null)
-            return Results.Unauthorized();
-
-        return Results.Ok(new UserDtos.AuthResponse(user.Token)); // Retorna o token em caso de sucesso
-    }
-    catch
-    {
-        return Results.StatusCode(500); // Internal Server Error
-    }
+app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service) =>
+{
+    var result = await service.PostAuthenticationUserAsync(req);
+    return result; ;
 
 }).WithSummary("Login")
 .WithDescription("Autentica o usuário e retorna um token JWT.");
@@ -229,20 +192,12 @@ app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,  
     if (string.IsNullOrEmpty(userId))
         return Results.Unauthorized();
 
-    try
-    {
-        var url = await service.CriarUrlAsync(req.Url, userId);
 
-        return Results.Created($"/api/v1/urls/{url.IdOfuscado}", new
-        {
-            idOfuscado = url.IdOfuscado,
-            urlEncurtada = $"https://meusite.com/{url.IdOfuscado}"
-        });
-    }
-    catch
-    {
-        return Results.StatusCode(500);
-    }
+    //Registra a URL encurtada para o usuário logado
+    var result = await service.RegisterUrlAsync(req.Url, userId);
+
+    return result;
+
 }).RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
@@ -257,17 +212,10 @@ app.MapGet("/api/v1/urls", async (ClaimsPrincipal userClaims, IUrlService servic
     if (string.IsNullOrEmpty(userId))
         return Results.Unauthorized();
 
-    try
-    {
+    var data = await service.ObterPageUrlPorUserIdAsync(userId, page, limit);
+    return Results.Ok(data);
 
-        var data = await service.ObterPageUrlPorUserIdAsync(userId, page, limit);
 
-        return Results.Ok(data);
-    }
-    catch
-    {
-        return Results.StatusCode(500); // Internal Server Error
-    }
 }).WithSummary("Lista URLs paginadas")
 .WithDescription("Retorna uma lista paginada de URLs do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 

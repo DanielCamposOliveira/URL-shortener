@@ -6,12 +6,14 @@ namespace API_Data.src.Services
 {
     public interface IUrlService
     {
-        Task<AuthResponse> ObterUsuarioPorEmailAsync(LoginRequest req);
-        Task<Url> CriarUrlAsync(string url, string userId);
+        Task<IResult> PostAuthenticationUserAsync(LoginRequest req);
 
+        Task<IResult> RegisterUrlAsync(string url, string userId);
+
+        //
         Task<ExportPagUrlResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit);
 
-
+        //
         Task<IResult> PostRegisterUserAsync(RegisterRequest User);
 
     }

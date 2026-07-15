@@ -24,15 +24,25 @@ namespace API_Data.src.Repository
             _db = db;
         }
 
-        public async Task AddAsync(Url url)
+
+
+        // -- Busca um usuário pelo email no banco de dados
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
-            // Adicionar a entidade ao banco de dados
-            _db.Urls.Add(url);
-            // Salvar as alterações no banco de dados
-            await _db.SaveChangesAsync();
+            try
+            {
+                // Verifica se existe um usuário com o email fornecido no banco de dados
+                var user = await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
+                return user;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
-        // Registra um novo usuário no banco de dados
+
+        // -- Registra um novo usuário no banco de dados
         public async Task<OperationResult> RegisterUserAsync(RegisterRequest user)
         {
             try
@@ -76,45 +86,79 @@ namespace API_Data.src.Repository
             }
         }
 
-        // Busca um usuário pelo email no banco de dados
-        public async Task<User?> GetUserByEmailAsync(string email)
+
+        // -- Adiciona uma nova URL ao banco de dados
+        public async Task<OperationResult> RegisterUrlAsync(Url url)
         {
-            return await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
+            try
+            {
+                // Adicionar a entidade ao banco de dados
+                _db.Urls.Add(url);
+                // Salvar as alterações no banco de dados
+                await _db.SaveChangesAsync();
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = "URL registrada com sucesso."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
         }
 
-        // Busca uma página de URLs associadas a um usuário pelo userId, com paginação
+        // -- Busca uma página de URLs associadas a um usuário pelo userId, com paginação
         public async Task<ExportPagUrlResponse> GetUrlPageAsync(string userId, int page, int limit)
         {
-            // Busca todas as URLs associadas ao usuário pelo userId, ordenadas por CreatedAt em ordem decrescente, com paginação
-            var query =  _db.Urls.Where(u => u.UserId == userId);
-            
-            // Conta o total de URLs associadas ao usuário
-            var totalCount = await query.CountAsync();
-
-            // Aplica paginação e seleciona os campos necessários para o modelo de exportação
-            var data = await query
-                 .OrderByDescending(u => u.CreatedAt)
-                 .Skip((page - 1) * limit)
-                 .Take(limit)
-                 .Select(u => new PageUrlDTO
-                 {
-                     IsActive = u.IsActive,
-                     ClickCount = u.ClickCount,
-                     ExpiresAt = u.ExpiresAt,
-                     LastAccessedAt = u.LastAccessedAt,
-                     IdOfuscado = u.IdOfuscado,
-                     OriginalUrl = u.OriginalUrl
-                 })
-                 .ToListAsync();
-
-            // Retorna a resposta com os dados da página, limite e contagem total
-            return new ExportPagUrlResponse
+            try 
             {
-                Urls = data,
-                Page = page,
-                Limit = limit,
-                TotalCount = totalCount
-            };
+                // Busca todas as URLs associadas ao usuário pelo userId, ordenadas por CreatedAt em ordem decrescente, com paginação
+                var query = _db.Urls.Where(u => u.UserId == userId);
+
+                // Conta o total de URLs associadas ao usuário
+                var totalCount = await query.CountAsync();
+
+                // Aplica paginação e seleciona os campos necessários para o modelo de exportação
+                var data = await query
+                     .OrderByDescending(u => u.CreatedAt)
+                     .Skip((page - 1) * limit)
+                     .Take(limit)
+                     .Select(u => new PageUrlDTO
+                     {
+                         IsActive = u.IsActive,
+                         ClickCount = u.ClickCount,
+                         ExpiresAt = u.ExpiresAt,
+                         LastAccessedAt = u.LastAccessedAt,
+                         IdOfuscado = u.IdOfuscado,
+                         OriginalUrl = u.OriginalUrl
+                     })
+                     .ToListAsync();
+
+                // Retorna a resposta com os dados da página, limite e contagem total
+                return new ExportPagUrlResponse
+                {
+                    Urls = data,
+                    Page = page,
+                    Limit = limit,
+                    TotalCount = totalCount
+                };
+            } 
+            catch (Exception ex) 
+            {                
+                return new ExportPagUrlResponse
+                {
+                    Urls = new List<PageUrlDTO>(),
+                    Page = page,
+                    Limit = limit,
+                    TotalCount = 0
+                };
+            }
+
         }
 
 

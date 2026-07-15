@@ -8,7 +8,7 @@ namespace API_Data.src.Repository
     {
         Task<User?> GetUserByEmailAsync(string email);
 
-        Task AddAsync(Url url);
+        Task<OperationResult> RegisterUrlAsync(Url url);
       
         Task<ExportPagUrlResponse> GetUrlPageAsync(string userId, int page, int limit);
 
