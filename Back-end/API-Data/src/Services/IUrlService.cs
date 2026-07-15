@@ -20,8 +20,9 @@ namespace API_Data.src.Services
 
         Task<IResult> DeactivateUrlAsync(string userId, string idOfuscado);
 
+        Task<IResult> DeactivateUserAsync(string userId, string UserActiver);
 
-        Task<IResult> DeleteUser(string userId);
+        Task<IResult> DeleteUser(string userId, string UserDelete);
 
     }
 }

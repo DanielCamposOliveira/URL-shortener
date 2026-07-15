@@ -126,5 +126,44 @@ namespace API_Data.src.Repository
             }
         }
 
+        public async Task<OperationResult> DeactivateUserAsync(string userId)
+        {
+            try
+            {
+                // Busca a URL pelo IdOfuscado no banco de dados
+                var _user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (_user == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "Usuario não encontrada."
+                    };
+                }
+
+                // Alterna o valor de IsActive
+                _user.IsActive = !_user.IsActive;
+
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = _user.IsActive
+                        ? "Usuario ativada com sucesso."
+                        : "Usuario desativada com sucesso."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
     }
 }

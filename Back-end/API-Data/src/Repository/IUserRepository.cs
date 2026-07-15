@@ -11,6 +11,7 @@ namespace API_Data.src.Repository
 
         Task<User?> GetUserByEmailAsync(string email);
 
+        Task<OperationResult> DeactivateUserAsync(string userId);
 
         Task<OperationResult> DeleteUserAsync(string userId);
     }

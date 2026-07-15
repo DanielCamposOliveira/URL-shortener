@@ -242,7 +242,7 @@ app.MapGet("/{idOfuscado}", async (string idOfuscado, IUrlService service) =>
 
 
 // -- ROTA DE EXCLUSÃO DE USUARIO
-app.MapDelete("/api/v1/user/{idOfuscado}", async (string idOfuscado, IUrlService service, ClaimsPrincipal userClaims) =>
+app.MapDelete("/api/v1/user/{UserDelete}", async (string UserDelete, IUrlService service, ClaimsPrincipal userClaims) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
     var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -251,7 +251,7 @@ app.MapDelete("/api/v1/user/{idOfuscado}", async (string idOfuscado, IUrlService
     if (string.IsNullOrEmpty(userId))
         return Results.Unauthorized();
 
-    var result = await service.DeleteUser(userId);
+    var result = await service.DeleteUser(userId, UserDelete);
 
     return result;
 
@@ -259,7 +259,22 @@ app.MapDelete("/api/v1/user/{idOfuscado}", async (string idOfuscado, IUrlService
 .WithDescription("Exclui usuário").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
+// - ROTA DE DESATIVAR USUARIO
+app.MapPatch("/api/v1/userActiver/{UserActive}", async (string UserActive, IUrlService service, ClaimsPrincipal userClaims) =>
+{
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var result = await service.DeactivateUserAsync(userId, UserActive);
+
+    return result;
+
+}).WithSummary("DESATIVA USER").WithTags("Administrator")
+.WithDescription("Desativa ou Ativa usuário").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
 

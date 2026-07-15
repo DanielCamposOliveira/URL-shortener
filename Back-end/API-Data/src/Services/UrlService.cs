@@ -289,14 +289,14 @@ namespace API_Data.src.Services
             };
         }
 
-
-        public async Task<IResult> DeleteUser(string userId)
+        // -- Delet
+        public async Task<IResult> DeleteUser(string userId, string UserDelete)
         {
             var resultUser = await IsAdminUser(userId);
             if (!resultUser.Success)
                 return Results.BadRequest(new { message = resultUser.Message });
 
-            var result = await _userRepository.DeleteUserAsync(userId);
+            var result = await _userRepository.DeleteUserAsync(UserDelete);
 
             if (!result.Success)
                 return Results.BadRequest(new { message = resultUser.Message });
@@ -304,6 +304,24 @@ namespace API_Data.src.Services
             return Results.NoContent();
 
 
+        }
+
+        public async Task<IResult> DeactivateUserAsync(string userId, string UserActiver)
+        {
+            // Verifica se o usuario esta Ativo
+            var resultUser = await IsAdminUser(userId);
+            if (!resultUser.Success)
+                return Results.BadRequest(new { message = resultUser.Message });
+
+
+            // Tentar desativar a URL usando o repositório
+            var result = await _userRepository.DeactivateUserAsync(UserActiver);
+
+            // Verificar se a operação foi bem-sucedida
+            if (!result.Success)
+                return Results.BadRequest(new { message = result.Message });
+
+            return Results.Ok(new { message = result.Message });
         }
     }
 }
