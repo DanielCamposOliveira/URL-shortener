@@ -19,5 +19,7 @@ namespace API_Data.src.Repository
         Task<User?> GetUserByIdAsync(string id);
 
         Task<Url?> GetUrlByIdAsync(string idOfuscado);
+
+        Task<OperationResult> ClickUrlAsync(string idOfuscado);
     }
 }

@@ -221,39 +221,6 @@ app.MapGet("/api/v1/urls", async (ClaimsPrincipal userClaims, IUrlService servic
 
 
 
-
-
-//// ROTA DE EXCLUSÃO DE URL ENCURTADA
-//app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, AppDbContext db, ClaimsPrincipal userClaims) =>
-//{
-//    try
-//    {
-//        // Recupera o ID do usuário logado a partir das claims do token JWT
-//        var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-//        // Se não houver ID de usuário, retorna 401 Unauthorized
-//        if (string.IsNullOrEmpty(userId)) return Results.Unauthorized();
-
-//        // Busca a URL pelo ID ofuscado no banco de dados
-//        var url = await db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado);
-//        if (url == null) return Results.NotFound();
-
-//        if (url.UserId != userId) return Results.Forbid(); // 403 se não for dono do link
-
-//        // Remove a URL do banco de dados e salva as alterações
-//        db.Urls.Remove(url);
-//        await db.SaveChangesAsync();
-
-//        return Results.NoContent();
-//    }
-//    catch
-//    {
-//        return Results.StatusCode(500); // Internal Server Error
-//    }
-
-//}).WithSummary("Exclui uma URL encurtada")
-//.WithDescription("Exclui uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
-
 // ROTA DE EXCLUSÃO DE URL ENCURTADA
 app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService service, ClaimsPrincipal userClaims) =>
 {
@@ -272,46 +239,62 @@ app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService
 .WithDescription("Exclui uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
+//// ROTA DE REDIRECIONAMENTO
+//app.MapGet("/{idOfuscado}", async (string idOfuscado, AppDbContext db) =>
+//{
+//    // A query abaixo utiliza o Unique Index definido no Context do EF Core.
+//    // O banco de dados buscará apenas no índice de forma extremamente rápida, sem "Key Lookup".
+//    var urlData = await db.Urls
+//        .Where(u => u.IdOfuscado == idOfuscado && u.IsActive)
+//        .Select(u => new { u.Id, u.OriginalUrl, u.ExpiresAt })
+//        .FirstOrDefaultAsync();
+
+//    // Se não encontrar o registro, retorna 404 Not Found
+//    if (urlData == null) return Results.NotFound();
+
+//    // Valida expiração de data se configurado
+//    if (urlData.ExpiresAt.HasValue && urlData.ExpiresAt.Value < DateTimeOffset.UtcNow)
+//        return Results.NotFound();
+
+
+//    // Incrementa estatísticas em segundo plano para não travar a resposta de redirecionamento
+//    _ = Task.Run(async () =>
+//    {
+//        try
+//        {
+//            using var scope = app.Services.CreateScope();
+//            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//            var record = await context.Urls.FindAsync(urlData.Id);
+//            if (record != null)
+//            {
+//                record.ClickCount++;
+//                record.LastAccessedAt = DateTimeOffset.UtcNow;
+//                await context.SaveChangesAsync();
+//            }
+//        }
+//        catch { /* Silencia erros de background thread para não impactar o usuário */ }
+//    });
+
+//    return Results.Redirect(urlData.OriginalUrl, permanent: false); // Redirecionamento 302 Found
+//}).WithSummary("Redireciona para a URL original")
+//.WithDescription("Redireciona para a URL original correspondente ao ID ofuscado fornecido.");
+
+
 // ROTA DE REDIRECIONAMENTO
-app.MapGet("/{idOfuscado}", async (string idOfuscado, AppDbContext db) =>
+app.MapGet("/{idOfuscado}", async (string idOfuscado, IUrlService service) =>
 {
-    // A query abaixo utiliza o Unique Index definido no Context do EF Core.
-    // O banco de dados buscará apenas no índice de forma extremamente rápida, sem "Key Lookup".
-    var urlData = await db.Urls
-        .Where(u => u.IdOfuscado == idOfuscado && u.IsActive)
-        .Select(u => new { u.Id, u.OriginalUrl, u.ExpiresAt })
-        .FirstOrDefaultAsync();
 
-    // Se não encontrar o registro, retorna 404 Not Found
-    if (urlData == null) return Results.NotFound();
+    var result = await service.GetUrlByIdAsync(idOfuscado);
 
-    // Valida expiração de data se configurado
-    if (urlData.ExpiresAt.HasValue && urlData.ExpiresAt.Value < DateTimeOffset.UtcNow)
-        return Results.NotFound();
-
-
-    // Incrementa estatísticas em segundo plano para não travar a resposta de redirecionamento
-    _ = Task.Run(async () =>
+    if (!result.Success)
     {
-        try
-        {
-            using var scope = app.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var record = await context.Urls.FindAsync(urlData.Id);
-            if (record != null)
-            {
-                record.ClickCount++;
-                record.LastAccessedAt = DateTimeOffset.UtcNow;
-                await context.SaveChangesAsync();
-            }
-        }
-        catch { /* Silencia erros de background thread para não impactar o usuário */ }
-    });
+        return Results.BadRequest(new { message = result.Message });
+    }
 
-    return Results.Redirect(urlData.OriginalUrl, permanent: false); // Redirecionamento 302 Found
+    return Results.Redirect(result.Message, permanent: false);
+
 }).WithSummary("Redireciona para a URL original")
 .WithDescription("Redireciona para a URL original correspondente ao ID ofuscado fornecido.");
-
 
 
 app.Run();

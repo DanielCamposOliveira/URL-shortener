@@ -119,6 +119,8 @@ namespace API_Data.src.Services
             return data;
         }
 
+
+        //  Deletar uma URL específica para um usuário específico
         public async Task<IResult> DeleteUrlAsync(string userId, string idOfuscado)
         {
             // Validar o ID ofuscado
@@ -149,8 +151,17 @@ namespace API_Data.src.Services
         }
 
 
+        // -- Obter a URL original pelo ID ofuscado e registrar o clique
+        public async Task<OperationResult> GetUrlByIdAsync(string idOfuscado)
+        {
+            var clickResult = await _urlRepository.ClickUrlAsync(idOfuscado);
 
-
+            return new OperationResult
+            {
+                Success = clickResult.Success,
+                Message = clickResult.Message
+            };
+        }
 
     }
 }

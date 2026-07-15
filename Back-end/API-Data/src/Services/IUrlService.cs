@@ -16,5 +16,7 @@ namespace API_Data.src.Services
 
         Task<IResult> DeleteUrlAsync(string userId, string idOfuscado);
 
+        Task<OperationResult> GetUrlByIdAsync(string idOfuscado);
+
     }
 }

@@ -191,6 +191,20 @@ namespace API_Data.src.Repository
             }
         }
 
+        public async Task<Url?> GetUrlByIdIsActiveAsync(string idOfuscado)
+        {
+            try
+            {
+                // Verifica se existe um usuário com o ID fornecido no banco de dados
+                var url = await _db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado && u.IsActive);
+                return url;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         // -- Remove uma URL do banco de dados pelo IdOfuscado
         public async Task<OperationResult> DeleteUrlAsync(string idOfuscado)
         {
@@ -217,6 +231,46 @@ namespace API_Data.src.Repository
                 {
                     Success = true,
                     Message = "URL removida com sucesso."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<OperationResult> ClickUrlAsync(string idOfuscado)
+        { 
+            try
+            {
+                // Busca a URL pelo IdOfuscado no banco de dados
+                var url = await _db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado && u.IsActive);
+                              
+                if (url == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "URL não encontrada ou inativa."
+                    };
+                }
+
+                // Incrementa o contador de cliques
+                url.ClickCount++;
+                // Atualiza a última data de acesso
+                url.LastAccessedAt = DateTime.UtcNow;
+
+                // Salva as alterações no banco de dados
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = url.OriginalUrl
                 };
             }
             catch (Exception ex)
