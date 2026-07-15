@@ -11,6 +11,7 @@ namespace API_Data.src.Data
         public DbSet<Url> Urls => Set<Url>();
         public DbSet<User> Users => Set<User>();
 
+
         // Configuração do modelo e índices
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,10 +24,21 @@ namespace API_Data.src.Data
                 .IsUnique()
                 .IncludeProperties(u => u.OriginalUrl);
 
+
             // Configuração do índice único para o campo Email da entidade User
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
+
+            // ==========================================================
+            // Configuração de Relacionamento e Deleção em Cascata
+            // ==========================================================
+            modelBuilder.Entity<Url>()
+                .HasOne(url => url.User)           // Uma URL tem 1 Usuário
+                .WithMany(user => user.Urls)       // Um Usuário tem muitas URLs
+                .HasForeignKey(url => url.UserId)  // A chave estrangeira é UserId
+                .OnDelete(DeleteBehavior.Cascade); // Se deletar o Usuário, deleta as URLs!
+
         }
     }
 }

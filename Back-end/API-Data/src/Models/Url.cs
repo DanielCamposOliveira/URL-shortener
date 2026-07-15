@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API_Data.src.Models
 {
-
     [Table("urls")]
     public class Url
     {
@@ -40,30 +39,12 @@ namespace API_Data.src.Models
         [Column("is_active")]
         public bool IsActive { get; set; } = true; // Indica se o link está ativo por padrão
 
-        // Relacionamento com o usuário criador (para segurança de posse do link)
         [Required]
         [Column("user_id")]
         public string UserId { get; set; } = string.Empty;
-    }
 
-    // Entidade Simples de Usuário para Autenticação
-    [Table("users")]
-    public class User
-    {
-        [Key]
-        [Column("id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        [Required]
-        [Column("name")]
-        public string Name { get; set; } = string.Empty;
-
-        [Required]
-        [Column("email")]
-        public string Email { get; set; } = string.Empty;
-
-        [Required]
-        [Column("password_hash")]
-        public string PasswordHash { get; set; } = string.Empty;
+        // Propriedade de navegação configurando a chave estrangeira
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; } = null!;
     }
 }

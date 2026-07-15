@@ -17,24 +17,62 @@ namespace API_Data.src.Services
 
     public class UrlService : IUrlService
     {
+        private readonly IUserRepository _userRepository;
         private readonly IUrlRepository _urlRepository;
         private readonly IdGeneratorClient _idClient;
         private readonly IJwtService _jwtService;
         private readonly ILogger<UrlService> _logger;
 
-        public UrlService(IUrlRepository urlRepository, IdGeneratorClient idClient, IJwtService jwtService, ILogger<UrlService> logger)
+        public UrlService(IUrlRepository urlRepository, IUserRepository userRepository, IdGeneratorClient idClient, IJwtService jwtService, ILogger<UrlService> logger)
         {
             _urlRepository = urlRepository;
+            _userRepository = userRepository;
             _idClient = idClient;
             _jwtService = jwtService;
             _logger = logger;
+        }
+
+        private async Task<OperationResult> IsActiveUser(string userId)
+        {
+            // verifica se o Id esta vazio
+            if (string.IsNullOrEmpty(userId))
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = "userId não informado"
+                };
+
+            // Busca usuario
+            var User = await _userRepository.GetUserByIdAsync(userId);
+
+
+            if (User == null)
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = "Usuario não encontrado"
+                };
+
+            if (User.IsActive == false)
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = "Usuario Desativado"
+                };
+
+            return new OperationResult
+            {
+                Success = true,
+                Message = ""
+            };
+
         }
 
         // -- Registrar um novo usuário
         public async Task<IResult> PostRegisterUserAsync(RegisterRequest user)
         {
             // Registrar o usuário no repositório
-            var result = await _urlRepository.RegisterUserAsync(user);
+            var result = await _userRepository.RegisterUserAsync(user);
 
             // Verificar se o registro foi bem-sucedido
             if (!result.Success)
@@ -52,7 +90,7 @@ namespace API_Data.src.Services
                 return Results.BadRequest(new { message = "Email inválido." });
 
             // Consultar o repositório para obter o usuário correspondente ao email
-            var user = await _urlRepository.GetUserByEmailAsync(req.Email);
+            var user = await _userRepository.GetUserByEmailAsync(req.Email);
 
             // Se o usuário não for encontrado, retornar null
             if (user == null)
@@ -61,6 +99,12 @@ namespace API_Data.src.Services
             // Verificar a senha usando o PasswordHasher
             if (!PasswordHasher.VerifyPassword(req.Password, user.PasswordHash))
                return Results.BadRequest(new { message = "Senha incorreta." });
+
+            // Verifica se o usuario esta Ativo
+            var result = await IsActiveUser(user.Id);
+            if (!result.Success)
+                return Results.BadRequest(new { message = result.Message });
+
 
             // Gerar o token JWT usando o IJwtService
             var token = _jwtService.GenerateToken(user);
@@ -76,6 +120,12 @@ namespace API_Data.src.Services
             // Validar a URL
             if (string.IsNullOrEmpty(url) || !Uri.IsWellFormedUriString(url, UriKind.Absolute))
                return Results.BadRequest(new { message = "URL inválida." });
+
+            // Verifica se o usuario esta Ativo
+            var resultUser = await IsActiveUser(userId);
+            if (!resultUser.Success)
+                return Results.BadRequest(new { message = resultUser.Message });
+
 
             // Gerar um ID único usando o IdGeneratorClient
             var idData = await _idClient.GenerateIdAsync();
@@ -94,11 +144,11 @@ namespace API_Data.src.Services
             };
 
             // Salvar a entidade no repositório
-            var result = await _urlRepository.RegisterUrlAsync(entity);
+            var resultUrl = await _urlRepository.RegisterUrlAsync(entity);
 
             // Verificar se a operação foi bem-sucedida
-            if (!result.Success)
-                return Results.BadRequest(new { message = result.Message });
+            if (!resultUrl.Success)
+                return Results.BadRequest(new { message = resultUrl.Message });
 
             return Results.Created(); // 201 Created
         }
@@ -125,7 +175,12 @@ namespace API_Data.src.Services
             // Validar o ID ofuscado
             if (string.IsNullOrEmpty(idOfuscado))
                 return Results.BadRequest(new { message = "ID inválido." });
-                      
+
+            // Verifica se o usuario esta Ativo
+            var resultUser = await IsActiveUser(userId);
+            if (!resultUser.Success)
+                return Results.BadRequest(new { message = resultUser.Message });
+
             // Busca a URL pelo ID ofuscado
             var Url = await _urlRepository.GetUrlByIdAsync(idOfuscado); // Obter a URL pelo ID ofuscado
 
@@ -136,15 +191,13 @@ namespace API_Data.src.Services
             // Verificar se o usuário é o dono do link
             if (userId != Url.UserId)
                 return Results.Forbid(); // 403 se não for dono do link
-                        
+                 
             // Tentar deletar a URL usando o repositório
             var result = await _urlRepository.DeleteUrlAsync(idOfuscado);
-
 
             // Verificar se a operação foi bem-sucedida
             if (!result.Success)
                 return Results.BadRequest(new { message = result.Message });
-
 
             return Results.Ok(new { message = "URL deletada com sucesso." });
         }
@@ -153,6 +206,11 @@ namespace API_Data.src.Services
         // -- Desativar uma URL específica para um usuário específico
         public async Task<IResult> DeactivateUrlAsync(string userId, string idOfuscado)
         {
+            // Verifica se o usuario esta Ativo
+            var resultUser = await IsActiveUser(userId);
+            if (!resultUser.Success)
+                return Results.BadRequest(new { message = resultUser.Message });
+
             // Busca a URL pelo ID ofuscado
             var Url = await _urlRepository.GetUrlByIdAsync(idOfuscado); // Obter a URL pelo ID ofuscado
 

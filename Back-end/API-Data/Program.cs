@@ -1,7 +1,6 @@
 using API_Data.src.Data;
 using API_Data.src.DTOs;
 using API_Data.src.Extensions;
-using API_Data.src.Models;
 using API_Data.src.Repository;
 using API_Data.src.Services;
 using API_Data.src.Utils;
@@ -14,12 +13,10 @@ Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddScoped<IUrlRepository, UrlRepository>();
+builder.Services.AddScoped <IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUrlService, UrlService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-
-
 
 // Recupera a string de conexão do appsettings.json de Conexão com o PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQLConnection");
@@ -30,7 +27,6 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 // Serviços necessários para o Swagger funcionar
 builder.Services.AddSwaggerGen();
 
-
 // Configuração do HttpClient para API 1
 builder.Services.AddHttpClient<IdGeneratorClient>(client =>
 {
@@ -39,20 +35,10 @@ builder.Services.AddHttpClient<IdGeneratorClient>(client =>
 
 // --- Configuração de Autenticação JWT ---
 var jwtKey = builder.Configuration.GetSection("JWT:Key").Value;
-
-// Garante que se a chave for nula ou muito curta, a aplicação use uma string limpa padrão
-if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)
-{
-    // Chave forte estática sem caracteres especiais complexos para evitar erros de encode
-    jwtKey = "CHAVESUPERSECRETADE32CARACTERESPARATESTE";
-}
-
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 
 // Configura a autenticação JWT
 builder.Services.AddJwtAuthentication(jwtKey);
-
-
 
 
 // Configura a autorização
@@ -72,7 +58,7 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,  // Permite que o contador de requisições seja reiniciado automaticamente após o período definido
-                PermitLimit = 10, // Máximo de 10 requisições...
+                PermitLimit = 2, // Máximo de 10 requisições...
                 Window = TimeSpan.FromSeconds(10), // ...a cada 10 segundos
                 QueueLimit = 0
             }));
@@ -115,13 +101,11 @@ var app = builder.Build();
 // Ative o middleware do Rate Limiter (coloque antes de mapear as rotas)
 app.UseRateLimiter();
 
-
 //app.UseHttpsRedirection(); // Redireciona automaticamente para HTTPS
+
 // Ativa a autenticação e autorização Obs. que a ordem importa: UseAuthentication deve vir antes de UseAuthorization
 app.UseAuthentication();
 app.UseAuthorization();
-
-
 
 // Executa Migrations Automaticamente
 //using (var scope = app.Services.CreateScope())
@@ -132,30 +116,13 @@ app.UseAuthorization();
 
 // Ativa o Swagger para documentação da API
 app.UseSwagger();
-
-// Configurações do Swagger no ambiente de Desenvolvimento
-//if (app.Environment.IsDevelopment())
-//{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Info Host API v1");
-        // Se quiser que o Swagger abra digitando apenas http://localhost:8585/, deixe a linha abaixo.
-        // Se preferir acessar por http://localhost:8585/swagger, comente a linha abaixo com //
-        c.RoutePrefix = string.Empty;
-    });
-//}
-
-
-
-
-
-
-
-
-
-
-
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Info Host API v1");
+    // Se quiser que o Swagger abra digitando apenas http://localhost:8585/, deixe a linha abaixo.
+    // Se preferir acessar por http://localhost:8585/swagger, comente a linha abaixo com //
+    c.RoutePrefix = string.Empty;
+});
 
 
 
@@ -167,8 +134,8 @@ app.MapPost("/api/v1/auth/register", async (RegisterRequest req, IUrlService ser
     var result = await service.PostRegisterUserAsync(req);
     return result;
 
-}).WithSummary("Register")
-.WithDescription("Registra um novo usuário e retorna um status de sucesso.");
+}).WithSummary("Register").WithTags("authentication")
+.WithDescription("Registra um novo usuário e retorna um status de sucesso.").RequireRateLimiting("IpLimitPolicy");
 
 
 // -- ROTA DE LOGIN DE USUÁRIO
@@ -177,8 +144,8 @@ app.MapPost("/api/v1/auth/login", async (LoginRequest req, IUrlService service) 
     var result = await service.PostAuthenticationUserAsync(req);
     return result; ;
 
-}).WithSummary("Login")
-.WithDescription("Autentica o usuário e retorna um token JWT.");
+}).WithSummary("Login").WithTags("authentication")
+.WithDescription("Autentica o usuário e retorna um token JWT.").RequireRateLimiting("IpLimitPolicy");
 
 
 // --  ROTA DE CRIAÇÃO DE URL ENCURTADA
@@ -186,6 +153,7 @@ app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,  
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
     var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
 
     // Se não houver ID de usuário, retorna 401 Unauthorized
     if (string.IsNullOrEmpty(userId))
@@ -197,7 +165,8 @@ app.MapPost("/api/v1/urls", async ( CreateUrlRequest req, IUrlService service,  
 
     return result;
 
-}).RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+}).WithSummary("Cria uma URL encurtada").WithTags("URLs")
+.WithDescription("Cria uma nova URL encurtada para o usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
 // -- ROTA DE LISTAGEM DE URLS ENCURTADAS COM PAGINAÇÃO
@@ -214,7 +183,7 @@ app.MapGet("/api/v1/urls", async (ClaimsPrincipal userClaims, IUrlService servic
     return Results.Ok(data);
 
 
-}).WithSummary("Lista URLs paginadas")
+}).WithSummary("Lista URLs paginadas").WithTags("URLs")
 .WithDescription("Retorna uma lista paginada de URLs do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
@@ -232,7 +201,7 @@ app.MapDelete("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService
 
     return result;       
 
-}).WithSummary("Exclui uma URL encurtada")
+}).WithSummary("Exclui uma URL encurtada").WithTags("URLs")
 .WithDescription("Exclui uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
@@ -250,7 +219,7 @@ app.MapPatch("/api/v1/urls/{idOfuscado}", async (string idOfuscado, IUrlService 
 
     return result;
 
-}).WithSummary("Desativa uma URL encurtada")
+}).WithSummary("Desativa uma URL encurtada").WithTags("URLs")
 .WithDescription("Desativa uma URL encurtada do usuário logado.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
@@ -267,7 +236,7 @@ app.MapGet("/{idOfuscado}", async (string idOfuscado, IUrlService service) =>
 
     return Results.Redirect(result.Message, permanent: false);
 
-}).WithSummary("Redireciona para a URL original")
+}).WithSummary("Redireciona para a URL original").WithTags("URLs")
 .WithDescription("Redireciona para a URL original correspondente ao ID ofuscado fornecido.");
 
 
