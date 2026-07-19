@@ -17,10 +17,12 @@ namespace API_Data.src.Repository
     public class UrlRepository : IUrlRepository
     {
         private readonly AppDbContext _db;
+        private readonly IConfiguration _configuration;
 
-        public UrlRepository(AppDbContext db)
+        public UrlRepository(IConfiguration configuration, AppDbContext db)
         {
             _db = db;
+            _configuration = configuration;
         }
 
 
@@ -57,6 +59,7 @@ namespace API_Data.src.Repository
         // -- Busca uma página de URLs associadas a um usuário pelo userId, com paginação
         public async Task<ExportPagUrlResponse> GetUrlPageAsync(string userId, int page, int limit)
         {
+            string UrlBase = _configuration.GetSection("website").Value;
             try 
             {
                 // Busca todas as URLs associadas ao usuário pelo userId, ordenadas por CreatedAt em ordem decrescente, com paginação
@@ -76,7 +79,8 @@ namespace API_Data.src.Repository
                          ClickCount = u.ClickCount,
                          ExpiresAt = u.ExpiresAt,
                          LastAccessedAt = u.LastAccessedAt,
-                         IdOfuscado = u.IdOfuscado,
+                         IdOfuscado =  u.IdOfuscado,
+                         Url = UrlBase + "/" + u.IdOfuscado,
                          OriginalUrl = u.OriginalUrl
                      })
                      .ToListAsync();
@@ -168,10 +172,17 @@ namespace API_Data.src.Repository
                               
                 if (url == null)
                 {
+                    //return new OperationResult
+                    //{
+                    //    Success = false,
+                    //    Message = "URL não encontrada ou inativa."
+                    //};
+
+                    // Vou enviar assim enquanto não tenho uma URL propria para 404
                     return new OperationResult
                     {
-                        Success = false,
-                        Message = "URL não encontrada ou inativa."
+                        Success = true,
+                        Message = "https://www.google.com/"
                     };
                 }
 

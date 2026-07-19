@@ -9,7 +9,8 @@
         public DateTimeOffset? ExpiresAt { get; set; }
         public DateTimeOffset? LastAccessedAt { get; set; }
         public string IdOfuscado { get; set; } = string.Empty;
-        public string OriginalUrl { get; set; } = string.Empty;      
+        public string OriginalUrl { get; set; } = string.Empty;     
+        public string Url {  get; set; } = string.Empty;
     }
 
     public class ExportPagUrlResponse

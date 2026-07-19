@@ -52,6 +52,17 @@ builder.Services.AddAuthorization();
 // Adiciona os serviços para a Minimal API mapear endpoints
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder => {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        }
+    );
+});
+
 // Configura o Rate Limiting por IP de origem
 builder.Services.AddRateLimiter(options =>
 {
@@ -63,7 +74,7 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,  // Permite que o contador de requisições seja reiniciado automaticamente após o período definido
-                PermitLimit = 2, // Máximo de requisições... coloquei 2 para testa a regra
+                PermitLimit = 20, // Máximo de requisições... coloquei 2 para testa a regra
                 Window = TimeSpan.FromSeconds(10), // ...a cada 10 segundos
                 QueueLimit = 0
             }));
@@ -102,6 +113,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseCors();
 
 // Ative o middleware do Rate Limiter (coloque antes de mapear as rotas)
 app.UseRateLimiter();

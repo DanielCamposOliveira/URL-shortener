@@ -23,9 +23,22 @@ int machineId = builder.Configuration.GetValue<int>("config:MACHINE_ID", 1);
 builder.Services.AddSingleton(new SnowflakeGenerator(machineId));
 builder.Services.AddSingleton(new Hashids(builder.Configuration.GetSection("config:SaltSecret").Value, 7));
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder => {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        }
+    );
+});
 
 
 var app = builder.Build();
+
+
+app.UseCors();
 
 
 // Rota oficial para gerar IDs. Retorna tanto o ID numérico quanto o ID ofuscado.
