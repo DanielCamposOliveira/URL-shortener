@@ -1,1 +1,23 @@
-<router-outlet></router-outlet>
+<!-- <router-outlet></router-outlet> -->
+
+<!-- Exibe o header no topo da aplicação quando não estiver na página de login -->
+<header>
+   @if (router.url !== '/login') {
+        <app-header 
+            [titulo]="'Encurtador de Link'"
+            [Name]="Name"
+            [IsActive]="IsActive"
+            [IsAdmin]="IsAdmin"
+            [isDarkMode]="isDarkMode"
+            (isDarkModeChange)="onThemeChange($event)"
+            (logout)="deslogar()">    
+        </app-header>
+    }
+</header>
+
+
+
+<main>
+  <!-- As páginas (Home, Dashboard, etc.) renderizam aqui -->
+  <router-outlet></router-outlet>
+</main>

@@ -1,26 +1,14 @@
 <div class="dashboard-container">
   
-  <!-- Cabeçalho Principal do Painel (Fixo no topo) -->
-  <app-header 
-    [titulo]="'Encurtador de Link'"
-
-    [Name]="Name"
-    [IsActive]="IsActive"
-    [IsAdmin]="IsAdmin"
-    [isDarkMode]="isDarkMode"
-
-    (isDarkModeChange)="onThemeChange($event)"
-    (logout)="deslogar()">
-    
-  </app-header>
-
   <main class="conteudo-principal">
     
     <!-- Área de Cadastro do Link -->
     <section class="shortener-box">
       <h3>Encurtar uma nova URL</h3>
       
+      <!-- form do botao de cria url-->
       <form class="shortener-form" (ngSubmit)="onCriarUrl()">
+
         <div class="input-wrapper">
           <input 
             type="url" 
@@ -34,6 +22,7 @@
         <button type="submit" class="btn-primary">
           Encurtar Link
         </button>
+
       </form>
     </section>
 

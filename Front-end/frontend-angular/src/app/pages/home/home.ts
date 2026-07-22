@@ -1,16 +1,13 @@
 import { Component, OnInit, inject, ChangeDetectorRef} from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../../service/Authentication/auth.service';
 import { FormsModule } from '@angular/forms';
-
 import { ApiResponse, ServiceData, UrlItem } from '../../service/Data/service.data';
 import { UrlTableComponent } from '../../components/Tabela/url-table/url-table';
-import { HeaderComponent } from '../../components/header/header';
+
 
 
 @Component({
   selector: 'app-home',
-  imports: [UrlTableComponent, HeaderComponent, FormsModule],
+  imports: [UrlTableComponent, FormsModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -31,7 +28,6 @@ export class Home implements OnInit {
   // O ngOnInit é um método do Angular que roda automaticamente assim que a tela abre
   ngOnInit(): void {
     this.carregarLinks();
-    this.ObterInformacoesUsuario();
   }
 
 paginaAtual: number = 1;
@@ -129,65 +125,12 @@ carregarLinks(pagina: number = 1): void {
 }
 
 
-  // Injeta o serviço de autenticação para gerenciar a sessão
-  private authService = inject(AuthService);
-  
-  // Injeta o roteador para efetuar a troca de tela ao deslogar
-  private router = inject(Router);
 
-  // Método que o botão "Sair do Sistema" vai disparar no HTML
-  deslogar(): void {
-    // 1. Limpa o token do localStorage e zera os Signals reativos
-    this.authService.logout();
-    
-    // 2. Redireciona o usuário de volta para o login de forma segura
-    this.router.navigate(['/login']);
-  }
-
-  Name: string = '';
-  IsActive: boolean = false;
-  IsAdmin: boolean = false;
-  isDarkMode: boolean = false;
-
-  // Método para obter informações do usuário logado
-  ObterInformacoesUsuario(): void {
-    this.serviceData.obterInformacoesUsuario().subscribe({
-      next: (resposta: any) => {
-        // Aceita tanto PascalCase quanto camelCase
-        this.Name = resposta.Name || resposta.name || '';
-        this.IsActive = resposta.IsActive ?? resposta.isActive ?? false;
-        this.IsAdmin = resposta.IsAdmin ?? resposta.isAdmin ?? false;
-        this.isDarkMode = resposta.isDarkMode ?? resposta.isdarkmode ?? false;
-
-        this.cdr.detectChanges(); // Força a atualização da interface
-      },
-      error: (erro) => {
-        console.error('Erro ao obter informações do usuário:', erro);
-      }
-    });
-  }
 
 
   
 
-  onThemeChange(value: boolean): void {
-    // 1. Atualiza o estado local do componente
-    this.isDarkMode = value;
-    console.log('valor:', value);
 
-    // 2. Envia a alteração para o banco de dados através do serviço
-    this.serviceData.atualizarTemaUsuario(value).subscribe({
-      next: () => {
-        console.log('Tema atualizado com sucesso no banco de dados!');
-      },
-      error: (erro) => {
-        console.error('Erro ao atualizar o tema no banco:', erro);
-        // Opcional: reverte o valor local caso ocorra erro no backend
-        this.isDarkMode = !value;
-        this.cdr.detectChanges();
-      }
-    });
-  }
 
 
 
