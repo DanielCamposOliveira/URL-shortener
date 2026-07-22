@@ -183,5 +183,28 @@ namespace API_Data.src.Services
 
             return Results.Ok(new { message = result.Message });
         }
+
+        public async Task<UserInfo> GetUserInfo(string userId)
+        {
+            // Busca usuario
+            var User = await _userRepository.GetUserByIdAsync(userId);
+
+            // Verifica se o usuário foi encontrado
+            if (User == null)
+            {
+                // Logar o aviso, lançar uma exceção ou retornar null/um objeto UserInfo padrão
+                _logger.LogWarning($"User with ID {userId} not found when trying to get user info.");
+                return null; // Ou throw new Exception("Usuário não encontrado");, dependendo da sua lógica de negócio
+            }
+                        
+            var dados = new UserInfo
+            {
+                Name = User.Name,
+                IsActive = User.IsActive,
+                IsAdmin = User.IsAdmin
+            };
+
+            return dados; // Retorna o objeto UserInfo criado
+        }
     }
 }
