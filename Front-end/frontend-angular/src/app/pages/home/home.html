@@ -1,0 +1,63 @@
+<div class="dashboard-container">
+  
+  <!-- Cabeçalho Principal do Painel (Fixo no topo) -->
+  <app-header 
+    [titulo]="'Encurtador de Link'"
+
+    [Name]="Name"
+    [IsActive]="IsActive"
+    [IsAdmin]="IsAdmin"
+    [isDarkMode]="isDarkMode"
+
+    (isDarkModeChange)="onThemeChange($event)"
+    (logout)="deslogar()">
+    
+  </app-header>
+
+  <main class="conteudo-principal">
+    
+    <!-- Área de Cadastro do Link -->
+    <section class="shortener-box">
+      <h3>Encurtar uma nova URL</h3>
+      
+      <form class="shortener-form" (ngSubmit)="onCriarUrl()">
+        <div class="input-wrapper">
+          <input 
+            type="url" 
+            placeholder="Cole seu link longo aqui (Ex: https://www.meusite.com/...)"
+            [(ngModel)]="novaUrl"
+            name="novaUrl"
+            required
+          />
+        </div>
+        
+        <button type="submit" class="btn-primary">
+          Encurtar Link
+        </button>
+      </form>
+    </section>
+
+    <!-- Tabela e Gerenciamento de URLs -->
+    <div class="home-container">
+      <h1>Gerenciador de URLs Encurtadas</h1>  
+      
+      @if (respostaApi) {
+        <app-url-table
+          [links]="listaDeLinks"
+          [page]="respostaApi?.page || 1"
+          [limit]="respostaApi?.limit || 10"
+          [totalCount]="respostaApi?.totalCount || 0"
+          (paginaAlterada)="carregarLinks($event)"
+          (alternarStatus)="onAlternarStatus($event)"
+          (excluirLink)="onExcluirLink($event)">
+        </app-url-table>
+      } @else {
+        <p style="color: #666; font-style: italic; text-align: center; margin-top: 20px;">
+          Carregando links do servidor...
+        </p>
+      }
+    </div>
+
+  </main>
+
+</div>
