@@ -13,5 +13,7 @@ namespace API_Data.src.Services.Interface
         Task<IResult> DeleteUser(string userId, string UserDelete);
 
         Task<UserInfo> GetUserInfo(string userId);
+
+        Task<IResult> ThemeUser(string userId, string isDarkMode);
     }
 }

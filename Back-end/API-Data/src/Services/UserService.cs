@@ -201,10 +201,33 @@ namespace API_Data.src.Services
             {
                 Name = User.Name,
                 IsActive = User.IsActive,
-                IsAdmin = User.IsAdmin
+                IsAdmin = User.IsAdmin,
+                isDarkMode = User.isDarkMode
             };
 
             return dados; // Retorna o objeto UserInfo criado
+        }
+
+        public async Task<IResult> ThemeUser(string userId, string isDarkMode)
+        {
+            try
+            {
+                bool _isDarkMode = Convert.ToBoolean(isDarkMode);
+
+                // Tentar desativar a URL usando o repositório
+                var result = await _userRepository.ThemeUser(userId, _isDarkMode);
+
+                // Verificar se a operação foi bem-sucedida
+                if (!result.Success)
+                    return Results.BadRequest(new { message = result.Message });
+
+                return Results.Ok(new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+
         }
     }
 }

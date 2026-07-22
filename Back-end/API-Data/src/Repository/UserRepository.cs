@@ -166,5 +166,41 @@ namespace API_Data.src.Repository
             }
         }
 
+        public async Task<OperationResult> ThemeUser(string userId, bool isDarkMode)
+        {
+            try
+            {
+                // Busca a URL pelo IdOfuscado no banco de dados
+                var _user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (_user == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "Usuario não encontrada."
+                    };
+                }
+
+                // Alterna o valor de IsActive
+                _user.isDarkMode = isDarkMode;
+
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message ="DarkMode:" + _user.isDarkMode
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
     }
 }

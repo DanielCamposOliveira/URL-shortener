@@ -22,11 +22,17 @@ namespace API_Data.src.Models
         [Column("password_hash")]
         public string PasswordHash { get; set; } = string.Empty;
 
+        [Required]
         [Column("IsActive")]
         public bool IsActive { get; set; } = true;
 
+        [Required]
         [Column("IsAdmin")]
         public bool IsAdmin { get; set; } = false;
+
+        [Required]
+        [Column("isDarkMode")]
+        public bool isDarkMode { get; set; } =false;
 
         [Required]
         [Column("QtdMaxUrl")]

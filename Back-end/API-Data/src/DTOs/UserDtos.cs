@@ -11,6 +11,7 @@
             public string Name { get; init; }
             public bool IsAdmin { get; init; }
             public bool IsActive { get; init; }
+            public bool isDarkMode { get; init; }
         }
     }
 }

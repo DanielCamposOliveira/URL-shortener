@@ -293,6 +293,7 @@ app.MapPatch("/api/v1/user/{UserActive}", async (string UserActive, IUserService
 }).WithSummary("DESATIVA USER").WithTags("Administrator")
 .WithDescription("Desativa ou Ativa usuário").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
+// - ROTA DE OBTER PERFIL DO USUARIO
 app.MapGet("/api/v1/user/", async (IUserService service, ClaimsPrincipal userClaims) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
@@ -309,8 +310,22 @@ app.MapGet("/api/v1/user/", async (IUserService service, ClaimsPrincipal userCla
 }).WithSummary("BUSCA INFORMAÇÕES DO USER").WithTags("USER")
 .WithDescription("Obtem dados do usuário").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
+// - ROTA DE MUDAR DADOS DO USUARIO
+app.MapPatch("/api/v1/user/theme/{isDarkMode}", async (string isDarkMode, IUserService service, ClaimsPrincipal userClaims) =>
+{
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
 
+    var result = await service.ThemeUser(userId, isDarkMode);
+
+    return result;
+
+}).WithSummary("ALTERA TEMA DarkMode").WithTags("USER")
+.WithDescription("Desativa ou Ativa DarkMode").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
 
 app.Run();

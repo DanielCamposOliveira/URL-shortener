@@ -3,6 +3,7 @@ using System;
 using API_Data.src.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API_Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260722132435_AdicionarCampoisDarkMode")]
+    partial class AdicionarCampoisDarkMode
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,6 +99,10 @@ namespace API_Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("IsAdmin");
 
+                    b.Property<bool>("IsGuest")
+                        .HasColumnType("boolean")
+                        .HasColumnName("isDarkMode");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -109,10 +116,6 @@ namespace API_Data.Migrations
                     b.Property<int>("QtdMaxUrl")
                         .HasColumnType("integer")
                         .HasColumnName("QtdMaxUrl");
-
-                    b.Property<bool>("isDarkMode")
-                        .HasColumnType("boolean")
-                        .HasColumnName("isDarkMode");
 
                     b.HasKey("Id");
 
