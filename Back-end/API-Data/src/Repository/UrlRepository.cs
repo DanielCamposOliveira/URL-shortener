@@ -3,6 +3,7 @@ using API_Data.src.DTOs;
 using API_Data.src.Models;
 using API_Data.src.Repository.Interface;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.Intrinsics.Arm;
 
 namespace API_Data.src.Repository
 {
@@ -17,10 +18,12 @@ namespace API_Data.src.Repository
     public class UrlRepository : IUrlRepository
     {
         private readonly AppDbContext _db;
+        private readonly IConfiguration _configuration;
 
-        public UrlRepository(AppDbContext db)
+        public UrlRepository(IConfiguration configuration, AppDbContext db)
         {
             _db = db;
+            _configuration = configuration;
         }
 
 
@@ -57,6 +60,8 @@ namespace API_Data.src.Repository
         // -- Busca uma página de URLs associadas a um usuário pelo userId, com paginação
         public async Task<ExportPagUrlResponse> GetUrlPageAsync(string userId, int page, int limit)
         {
+            string UrlBase = _configuration.GetSection("website").Value;
+
             try 
             {
                 // Busca todas as URLs associadas ao usuário pelo userId, ordenadas por CreatedAt em ordem decrescente, com paginação
@@ -76,6 +81,7 @@ namespace API_Data.src.Repository
                          ClickCount = u.ClickCount,
                          ExpiresAt = u.ExpiresAt,
                          LastAccessedAt = u.LastAccessedAt,
+                         Url = UrlBase + "/" + u.IdOfuscado,
                          IdOfuscado = u.IdOfuscado,
                          OriginalUrl = u.OriginalUrl
                      })
@@ -166,19 +172,15 @@ namespace API_Data.src.Repository
                 // Busca a URL pelo IdOfuscado no banco de dados
                 var url = await _db.Urls.FirstOrDefaultAsync(u => u.IdOfuscado == idOfuscado && u.IsActive);
 
-                //if (url == null)
-                //{
-                //    return new OperationResult
-                //    {
-                //        Success = false,
-                //        Message = "URL não encontrada ou inativa."
-                //    };
-                //}
-                return new OperationResult
+                if (url == null)
                 {
-                    Success = true,
-                    Message = "https://www.google.com/"
-                };
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "https://www.google.com/"
+                    };
+                }
+                
 
                 // Incrementa o contador de cliques
                 url.ClickCount++;

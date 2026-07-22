@@ -246,10 +246,10 @@ app.MapGet("/{idOfuscado}", async (string idOfuscado, IUrlService service) =>
 
     var result = await service.GetUrlByIdAsync(idOfuscado);
 
-    if (!result.Success)
-    {
-        return Results.BadRequest(new { message = result.Message });
-    }
+    //if (!result.Success)
+    //{
+    //    return Results.BadRequest(new { message = result.Message });
+    //}
 
     return Results.Redirect(result.Message, permanent: false);
 
