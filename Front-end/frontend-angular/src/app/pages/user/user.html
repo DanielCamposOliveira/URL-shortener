@@ -1,1 +1,28 @@
-<p>user works!</p>
+<div class="dashboard-container">
+  
+  <main class="conteudo-principal">
+
+    <!-- Tabela e Gerenciamento de Usuários -->
+    <div class="home-container">
+      <h1>Gerenciador de Usuários</h1>  
+      
+      @if (respostaApi) {
+        <app-user-table
+          [users]="listaDeUsuarios"
+          [page]="respostaApi?.page || 1"
+          [limit]="respostaApi?.limit || 10"
+          [totalCount]="respostaApi?.totalCount || 0"
+          (paginaAlterada)="carregarUsuarios($event)"
+          (alternarStatus)="onAlternarStatus($event)"
+          (excluirUsuario)="onExcluirUsuario($event)">
+        </app-user-table>
+      } @else {
+        <p style="color: #666; font-style: italic; text-align: center; margin-top: 20px;">
+          Carregando usuários do servidor...
+        </p>
+      }
+    </div>
+
+  </main>
+
+</div>

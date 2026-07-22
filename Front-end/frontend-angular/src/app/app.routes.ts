@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './pages/login/login';
 import { Home } from './pages/home/home';
-import { User } from './pages/user/user';
+import { UsersPage } from './pages/user/user';
 import { authGuard } from './service/auth.guard';
 
 export const routes: Routes = [
@@ -23,7 +23,7 @@ export const routes: Routes = [
   // Se ele tiver token, o Guard da Home vai validar. Se não tiver, o Guard joga pro login.
   { 
     path: 'User', 
-    component: User, 
+    component: UsersPage, 
     canActivate: [authGuard] 
   },
 

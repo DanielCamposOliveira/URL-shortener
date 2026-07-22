@@ -4,9 +4,7 @@ import { Observable } from 'rxjs';
 
 
 
-// 1. Mapeia como é um Link individual dentro do array
-// INTERFACE: Define a estrutura de um objeto de link
-// 1. O formato real de cada link vindo da API
+
 export interface UrlItem {
   idOfuscado: string;
   originalUrl: string;
@@ -23,6 +21,28 @@ export interface ApiResponse {
   limit: number;
   totalCount: number;  // Mudamos de 'total' para 'totalCount'
 }
+
+
+
+// --- Interfaces para Usuários ---
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  isAdmin: boolean;
+  qtdMaxUrl: number;
+}
+
+export interface UsersResponse {
+  user: User[];
+  page: number;
+  limit: number;
+  totalCount: number;
+}
+
+
+
 
 // strutura para criar uma nova URL
 export interface CriarUrlRequest {
@@ -52,10 +72,12 @@ export class ServiceData {
 
     // URL da sua API de paginação de links
     private apiUrlsListUrl = 'http://localhost:5000/api/v1/urls';
-    private apiUserInfoUrl = 'http://localhost:5000/api/v1/user';
+    private apiUsersUrl = 'http://localhost:4848/api/v1/users';
 
-    // MÉTODO: Busca os links paginados
-    // Ele promete retornar um Observable contendo a nossa estrutura 'ApiResponse'
+
+    // ==========================================
+    // MÉTODOS DE URLS
+    // ==========================================
     obterTodosLinks(page: number, limit: number ): Observable<ApiResponse> {
       // Montamos a URL juntando os parâmetros de página e limite
       const urlCompleta = `${this.apiUrlsListUrl}?page=${page}&limit=${limit}`;
@@ -102,16 +124,42 @@ export class ServiceData {
      * GET -> http://localhost:5000/api/v1/user
      */
     obterInformacoesUsuario(): Observable<UserInfoResponse> {
-      const urlCompleta = `${this.apiUserInfoUrl}`;
+      const urlCompleta = `${this.apiUsersUrl}`;
       return this.http.get<UserInfoResponse>(urlCompleta);
     }
 
     // Adicione este método dentro da classe ServiceData
     atualizarTemaUsuario(isDarkMode: boolean): Observable<void> {
       const _isDarkMode = isDarkMode.toString();
-      const urlCompleta = `${this.apiUserInfoUrl}/theme/${_isDarkMode}`;
+      const urlCompleta = `${this.apiUsersUrl}/theme/${_isDarkMode}`;
 
       // Enviamos um objeto vazio {} como body, já que o valor vai no path da URL
       return this.http.patch<void>(urlCompleta, {});
     }
+
+    // ==========================================
+    // NOVOS MÉTODOS DE USUÁRIOS
+    // ==========================================
+    obterTodosUsuarios(page: number = 1, limit: number = 10): Observable<UsersResponse> {
+
+        const urlCompleta = `${this.apiUsersUrl}?page=${page}&limit=${limit}`;
+
+    //const params = new HttpParams()
+    //  .set('page', page.toString())
+    //  .set('limit', limit.toString());
+
+    //return this.http.get<UsersResponse>(this.apiUsersUrl, { params });
+     return this.http.get<UsersResponse>(urlCompleta);
+  }
+
+
+
+  alternarStatusUsuario(id: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUsersUrl}/${id}/status`, {});
+  }
+
+  excluirUsuario(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUsersUrl}/${id}`);
+  }
+
 }
