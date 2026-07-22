@@ -183,5 +183,51 @@ namespace API_Data.src.Services
 
             return Results.Ok(new { message = result.Message });
         }
+
+        public async Task<UserInfo> GetUserInfo(string userId)
+        {
+            // Busca usuario
+            var User = await _userRepository.GetUserByIdAsync(userId);
+
+            // Verifica se o usuário foi encontrado
+            if (User == null)
+            {
+                // Logar o aviso, lançar uma exceção ou retornar null/um objeto UserInfo padrão
+                _logger.LogWarning($"User with ID {userId} not found when trying to get user info.");
+                return null; // Ou throw new Exception("Usuário não encontrado");, dependendo da sua lógica de negócio
+            }
+                        
+            var dados = new UserInfo
+            {
+                Name = User.Name,
+                IsActive = User.IsActive,
+                IsAdmin = User.IsAdmin,
+                isDarkMode = User.isDarkMode
+            };
+
+            return dados; // Retorna o objeto UserInfo criado
+        }
+
+        public async Task<IResult> ThemeUser(string userId, string isDarkMode)
+        {
+            try
+            {
+                bool _isDarkMode = Convert.ToBoolean(isDarkMode);
+
+                // Tentar desativar a URL usando o repositório
+                var result = await _userRepository.ThemeUser(userId, _isDarkMode);
+
+                // Verificar se a operação foi bem-sucedida
+                if (!result.Success)
+                    return Results.BadRequest(new { message = result.Message });
+
+                return Results.Ok(new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+
+        }
     }
 }

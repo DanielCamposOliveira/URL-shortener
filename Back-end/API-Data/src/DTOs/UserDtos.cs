@@ -6,5 +6,12 @@
         public record LoginRequest(string Email, string Password); // Requisição de login
         public record AuthResponse(string Token); // Retorna o token JWT
 
+        public record UserInfo
+        {
+            public string Name { get; init; }
+            public bool IsAdmin { get; init; }
+            public bool IsActive { get; init; }
+            public bool isDarkMode { get; init; }
+        }
     }
 }

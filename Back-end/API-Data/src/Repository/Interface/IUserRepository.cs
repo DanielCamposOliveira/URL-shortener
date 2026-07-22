@@ -14,5 +14,7 @@ namespace API_Data.src.Repository.Interface
         Task<OperationResult> DeactivateUserAsync(string userId);
 
         Task<OperationResult> DeleteUserAsync(string userId);
+
+        Task<OperationResult> ThemeUser(string userId, bool isDarkMode);
     }
 }

@@ -1,0 +1,16 @@
+<!-- parente-data.html -->
+<h1>Nome: {{ name }} {{ sobrenome }}!</h1>[cite: 4]
+
+<hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+
+<!-- Usamos o @if aqui dentro do componente específico -->
+@if (identificador) {
+  <div style="background: #222; padding: 15px; border-radius: 8px; color: #fff; margin-top: 10px;">
+    <h3>Dados do Identificador (Processado no Componente Filho):</h3>
+    <p><strong>ID Numérico:</strong> {{ identificador.idNumerico }}</p>
+    <p><strong>ID Ofuscado:</strong> {{ identificador.idOfuscado }}</p>
+    <p><strong>Máquina de Origem:</strong> {{ identificador.maquinaOrigem }}</p>
+  </div>
+} @else {
+  <p style="color: #666; font-style: italic;">Nenhum identificador carregado ainda.</p>
+}

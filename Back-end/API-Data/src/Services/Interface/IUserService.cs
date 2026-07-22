@@ -11,5 +11,9 @@ namespace API_Data.src.Services.Interface
         Task<IResult> DeactivateUserAsync(string userId, string UserActiver);
 
         Task<IResult> DeleteUser(string userId, string UserDelete);
+
+        Task<UserInfo> GetUserInfo(string userId);
+
+        Task<IResult> ThemeUser(string userId, string isDarkMode);
     }
 }

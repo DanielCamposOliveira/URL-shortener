@@ -1,0 +1,99 @@
+<!-- <pre>{{ links | json }}</pre> -->
+
+<div class="tabela-container">
+  <table class="links-table">
+    <thead>
+      <tr>
+        <!-- ID Ofuscado removido daqui -->
+        <th>Link Encurtado</th>
+        <th>URL Original</th>
+        <th>Cliques</th>
+        <th>Status</th>
+        <th class="text-center">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of links; track item.idOfuscado) {
+        <tr>
+          <!-- Trocamos a exibição do ID pelo Link Encurtado -->
+<td>
+  <div class="link-container">
+    <a [href]="item.url" target="_blank" class="short-url">
+      {{ item.url }}
+    </a>
+
+    <i
+      class="fa-solid fa-copy copy-icon"
+      (click)="copyUrl(item.url)"
+      title="Copiar link">
+    </i>
+  </div>
+</td>
+          <td>
+            <div class="text-truncate">
+              <a [href]="item.originalUrl" target="_blank" class="original-url-text">
+                      {{ item.originalUrl.length > 20
+          ? (item.originalUrl | slice:0:20) + '...'
+          : item.originalUrl }}
+              </a>
+            </div>
+          </td>
+          <td>
+            <span class="badge-cliques">{{ item.clickCount }}</span>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="item.isActive" [class.inactive]="!item.isActive">
+              {{ item.isActive ? 'Ativo' : 'Inativo' }}
+            </span>
+          </td>
+          <td class="text-center">
+            <div class="acoes-wrapper">
+              <!-- O idOfuscado continua guardado aqui perfeitamente para as funções funcionarem -->
+              <button 
+                (click)="alternarStatus.emit(item.idOfuscado)" 
+                class="btn-acao" 
+                [class.btn-desativar]="item.isActive" 
+                [class.btn-ativar]="!item.isActive"
+                [title]="item.isActive ? 'Desativar Link' : 'Ativar Link'">
+                {{ item.isActive ? 'Desativar' : 'Ativar' }}
+              </button>
+
+              <button 
+                (click)="excluirLink.emit(item.idOfuscado)" 
+                class="btn-acao btn-excluir" 
+                title="Excluir Link">
+                Excluir
+              </button>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" class="sem-dados">Nenhum link encontrado.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+
+<!-- COMPONENTE DE PAGINAÇÃO -->
+<div class="paginacao">
+  <button 
+    class="btn-pag" 
+    [disabled]="page <= 1"
+    (click)="mudarPagina(page - 1)">
+    Anterior
+  </button>
+
+  <span class="info-paginacao">
+    Página {{ page }} de {{ totalPaginas }}
+  </span>
+
+  <button 
+    class="btn-pag" 
+    [disabled]="page >= totalPaginas"
+    (click)="mudarPagina(page + 1)">
+    Próxima
+  </button>
+</div>
