@@ -1,4 +1,6 @@
-﻿using API_Data.src.Models;
+﻿using API_Data.src.DTOs;
+using API_Data.src.Models;
+using API_Data.src.Repository;
 using API_Data.src.Repository.Interface;
 using API_Data.src.Services.Interface;
 using API_Data.src.Utils;
@@ -229,5 +231,49 @@ namespace API_Data.src.Services
             }
 
         }
+
+        public async Task<ExportPagUserResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit)
+        {
+            // Garantir que a página seja pelo menos 1
+            if (page < 1) page = 1;
+            // Garantir que o limite esteja entre 1 e 50, caso contrário, definir para 10
+            if (limit < 1 || limit > 50) limit = 10;
+
+            // Obter a lista de URLs paginadas para o usuário especificado
+            var data = await _userRepository.GetUserPageAsync(userId, page, limit);
+
+            return data;
+        }
+
+        public async Task<IResult> QtdUrlMaxUser(QtdUrlMaxUserRequest req)
+        {
+            try
+            {
+                int _QtdMaxUrl = Convert.ToInt32( req.QtdMaxUrl);
+                string _UserId = req.UserId;
+
+                // Tentar desativar a URL usando o repositório
+                var result = await _userRepository.QtdUrlMaxUser(_UserId, _QtdMaxUrl);
+
+                // Verificar se a operação foi bem-sucedida
+                if (!result.Success)
+                    return Results.BadRequest(new { message = result.Message });
+
+                return Results.Ok(new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(new { message = ex.Message });
+            }
+
+        }
+
+
+
+
+
+
+
+
     }
 }

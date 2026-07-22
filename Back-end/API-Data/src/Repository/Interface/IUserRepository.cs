@@ -16,5 +16,9 @@ namespace API_Data.src.Repository.Interface
         Task<OperationResult> DeleteUserAsync(string userId);
 
         Task<OperationResult> ThemeUser(string userId, bool isDarkMode);
+
+        Task<ExportPagUserResponse> GetUserPageAsync(string userId, int page, int limit);
+
+        Task<OperationResult> QtdUrlMaxUser(string userId, int qtd);
     }
 }

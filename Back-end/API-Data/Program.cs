@@ -293,6 +293,42 @@ app.MapPatch("/api/v1/user/{UserActive}", async (string UserActive, IUserService
 }).WithSummary("DESATIVA USER").WithTags("Administrator")
 .WithDescription("Desativa ou Ativa usuário").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
+app.MapGet("/api/v1/users", async (ClaimsPrincipal userClaims, IUserService service, int page = 1, int limit = 10) =>
+{
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var data = await service.ObterPageUrlPorUserIdAsync(userId, page, limit);
+    return Results.Ok(data);
+
+
+}).WithSummary("Lista de Usuarios").WithTags("Administrator")
+.WithDescription("Retorna uma lista paginada de Usuarios cadastrados.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
+app.MapPatch("/api/v1/user/QtdUrl/", async (QtdUrlMaxUserRequest req, IUserService service, ClaimsPrincipal userClaims) =>
+{
+    // Recupera o ID do usuário logado a partir das claims do token JWT
+    var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    // Se não houver ID de usuário, retorna 401 Unauthorized
+    if (string.IsNullOrEmpty(userId))
+        return Results.Unauthorized();
+
+    var result = await service.QtdUrlMaxUser(req);
+
+    return result;
+
+}).WithSummary("ALTERA QtdMaxUrl").WithTags("Administrator")
+.WithDescription("Altear a Quantidade de Url do Usuario").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
+
+
+
+
 // - ROTA DE OBTER PERFIL DO USUARIO
 app.MapGet("/api/v1/user/", async (IUserService service, ClaimsPrincipal userClaims) =>
 {
@@ -326,6 +362,13 @@ app.MapPatch("/api/v1/user/theme/{isDarkMode}", async (string isDarkMode, IUserS
 
 }).WithSummary("ALTERA TEMA DarkMode").WithTags("USER")
 .WithDescription("Desativa ou Ativa DarkMode").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
+
+
+
+
+
+
+
 
 
 app.Run();

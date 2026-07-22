@@ -1,4 +1,5 @@
 ﻿using API_Data.src.Data;
+using API_Data.src.DTOs;
 using API_Data.src.Models;
 using API_Data.src.Repository.Interface;
 using API_Data.src.Utils;
@@ -202,5 +203,102 @@ namespace API_Data.src.Repository
                 };
             }
         }
+
+        public async Task<ExportPagUserResponse> GetUserPageAsync(string userId, int page, int limit)
+        {           
+
+            try
+            {
+                // Busca todos os usuários
+                var query = _db.Users.AsQueryable();
+
+                // Conta o total de usuários
+                var totalCount = await query.CountAsync();
+
+                // Aplica paginação e seleciona os campos necessários para o modelo de exportação
+                var data = await query
+                    .OrderByDescending(u => u.Id)
+                    .Skip((page - 1) * limit)
+                    .Take(limit)
+                    .Select(u => new ListUsers
+                    {
+                        Id = u.Id,
+                        Name = u.Name,
+                        Email = u.Email,
+                        IsActive = u.IsActive,
+                        IsAdmin = u.IsAdmin,
+                        QtdMaxUrl = u.QtdMaxUrl,
+                    })
+                    .ToListAsync();
+
+                // Retorna a resposta com os dados da página, limite e contagem total
+                return new ExportPagUserResponse
+                {
+                    User = data,
+                    Page = page,
+                    Limit = limit,
+                    TotalCount = totalCount
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ExportPagUserResponse
+                {
+                    User = new List<ListUsers>(),
+                    Page = page,
+                    Limit = limit,
+                    TotalCount = 0
+                };
+            }
+
+        }
+
+        public async Task<OperationResult> QtdUrlMaxUser(string userId, int QtdMaxUrl)
+        {
+            try
+            {
+                // Busca a URL pelo IdOfuscado no banco de dados
+                var _user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (_user == null)
+                {
+                    return new OperationResult
+                    {
+                        Success = false,
+                        Message = "Usuario não encontrada."
+                    };
+                }
+
+                // Alterna o valor de IsActive
+                _user.QtdMaxUrl = QtdMaxUrl;
+
+                await _db.SaveChangesAsync();
+
+                return new OperationResult
+                {
+                    Success = true,
+                    Message = "QtdMaxUrl:" + _user.QtdMaxUrl
+                };
+            }
+            catch (Exception ex)
+            {
+                return new OperationResult
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
     }
 }
