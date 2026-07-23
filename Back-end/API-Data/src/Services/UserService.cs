@@ -232,8 +232,13 @@ namespace API_Data.src.Services
 
         }
 
-        public async Task<ExportPagUserResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit)
+        public async Task<ExportPagUserResponse> ObterPageUserAsync(string userId, int page, int limit)
         {
+            var resultUser = await IsAdminUser(userId);
+            if (!resultUser.Success)
+                return new ExportPagUserResponse();
+          
+
             // Garantir que a página seja pelo menos 1
             if (page < 1) page = 1;
             // Garantir que o limite esteja entre 1 e 50, caso contrário, definir para 10
@@ -245,10 +250,15 @@ namespace API_Data.src.Services
             return data;
         }
 
-        public async Task<IResult> QtdUrlMaxUser(QtdUrlMaxUserRequest req)
+        public async Task<IResult> QtdUrlMaxUser(string userId, QtdUrlMaxUserRequest req)
         {
             try
             {
+                var resultUser = await IsAdminUser(userId);
+                if (!resultUser.Success)
+                    return Results.BadRequest(new { message = resultUser.Message });
+
+
                 int _QtdMaxUrl = Convert.ToInt32( req.QtdMaxUrl);
                 string _UserId = req.UserId;
 

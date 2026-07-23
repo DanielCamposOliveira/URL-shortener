@@ -293,7 +293,7 @@ app.MapPatch("/api/v1/user/{UserActive}", async (string UserActive, IUserService
 }).WithSummary("DESATIVA USER").WithTags("Administrator")
 .WithDescription("Desativa ou Ativa usuário").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
-app.MapGet("/api/v1/users", async (ClaimsPrincipal userClaims, IUserService service, int page = 1, int limit = 10) =>
+app.MapGet("/api/v1/user/list", async (ClaimsPrincipal userClaims, IUserService service, int page = 1, int limit = 10) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
     var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -302,13 +302,14 @@ app.MapGet("/api/v1/users", async (ClaimsPrincipal userClaims, IUserService serv
     if (string.IsNullOrEmpty(userId))
         return Results.Unauthorized();
 
-    var data = await service.ObterPageUrlPorUserIdAsync(userId, page, limit);
+    var data = await service.ObterPageUserAsync(userId, page, limit);
     return Results.Ok(data);
 
 
 }).WithSummary("Lista de Usuarios").WithTags("Administrator")
 .WithDescription("Retorna uma lista paginada de Usuarios cadastrados.").RequireAuthorization().RequireRateLimiting("IpLimitPolicy");
 
+// - ROTA DE MUDAR A QTD DE URL O USUARIO PODE TER
 app.MapPatch("/api/v1/user/QtdUrl/", async (QtdUrlMaxUserRequest req, IUserService service, ClaimsPrincipal userClaims) =>
 {
     // Recupera o ID do usuário logado a partir das claims do token JWT
@@ -318,7 +319,7 @@ app.MapPatch("/api/v1/user/QtdUrl/", async (QtdUrlMaxUserRequest req, IUserServi
     if (string.IsNullOrEmpty(userId))
         return Results.Unauthorized();
 
-    var result = await service.QtdUrlMaxUser(req);
+    var result = await service.QtdUrlMaxUser(userId, req);
 
     return result;
 

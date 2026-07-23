@@ -16,8 +16,8 @@ namespace API_Data.src.Services.Interface
 
         Task<IResult> ThemeUser(string userId, string isDarkMode);
 
-        Task<ExportPagUserResponse> ObterPageUrlPorUserIdAsync(string userId, int page, int limit);
+        Task<ExportPagUserResponse> ObterPageUserAsync(string userId, int page, int limit);
 
-        Task<IResult> QtdUrlMaxUser(QtdUrlMaxUserRequest req);
+        Task<IResult> QtdUrlMaxUser(string userId, QtdUrlMaxUserRequest req);
     }
 }
