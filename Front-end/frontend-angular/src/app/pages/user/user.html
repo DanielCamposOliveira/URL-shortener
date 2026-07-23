@@ -14,7 +14,9 @@
           [totalCount]="respostaApi?.totalCount || 0"
           (paginaAlterada)="carregarUsuarios($event)"
           (alternarStatus)="onAlternarStatus($event)"
-          (excluirUsuario)="onExcluirUsuario($event)">
+          (excluirUsuario)="onExcluirUsuario($event)"
+          (salvarQtdMax)="onSalvarQtdMax($event)">
+          
         </app-user-table>
       } @else {
         <p style="color: #666; font-style: italic; text-align: center; margin-top: 20px;">

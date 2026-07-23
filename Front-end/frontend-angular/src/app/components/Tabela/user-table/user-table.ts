@@ -1,11 +1,11 @@
-//import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User } from '../../../service/Data/service.data';
 
 @Component({
   selector: 'app-user-table',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './user-table.html',
   styleUrl: './user-table.css',
 })
@@ -24,6 +24,8 @@ export class UserTable {
   @Output() alternarStatus = new EventEmitter<string>();
   @Output() excluirUsuario = new EventEmitter<string>(); 
   @Output() paginaAlterada = new EventEmitter<number>();
+
+  @Output() salvarQtdMax = new EventEmitter<{ userId: string, novaQtd: string }>();
 
   // O cálculo agora usa as variáveis do seu JSON
   get totalPaginas(): number {

@@ -49,6 +49,11 @@ export interface CriarUrlRequest {
   url: string;
 }
 
+export interface QtdUrl
+{
+  userId: string,
+  qtdMaxUrl: string
+}
 
 
 export interface UserInfoResponse {
@@ -72,8 +77,9 @@ export class ServiceData {
 
     // URL da sua API de paginação de links
     private apiUrlsListUrl = 'http://localhost:5000/api/v1/urls';
-    private apiUsersUrl = 'http://localhost:4848/api/v1/users';
-
+    private apiUsersUrl = 'http://localhost:5000/api/v1/user';
+    private apiUsersList = 'http://localhost:5000/api/v1/users';
+    private apiUserMaxUrl = 'http://localhost:5000/api/v1/user/QtdUrl';
 
     // ==========================================
     // MÉTODOS DE URLS
@@ -142,7 +148,7 @@ export class ServiceData {
     // ==========================================
     obterTodosUsuarios(page: number = 1, limit: number = 10): Observable<UsersResponse> {
 
-        const urlCompleta = `${this.apiUsersUrl}?page=${page}&limit=${limit}`;
+        const urlCompleta = `${this.apiUsersList}?page=${page}&limit=${limit}`;
 
     //const params = new HttpParams()
     //  .set('page', page.toString())
@@ -152,10 +158,18 @@ export class ServiceData {
      return this.http.get<UsersResponse>(urlCompleta);
   }
 
+atualizarQtdMaxUrl(userId: string, qtdMaxUrl: string): Observable<void> {
+ 
+        const body: QtdUrl = {
+          userId : userId,
+          qtdMaxUrl: qtdMaxUrl
+      };
 
+  return this.http.patch<void>(`${this.apiUserMaxUrl}`, body);
+}
 
   alternarStatusUsuario(id: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUsersUrl}/${id}/status`, {});
+    return this.http.patch<void>(`${this.apiUsersUrl}/${id}`, {});
   }
 
   excluirUsuario(id: string): Observable<void> {

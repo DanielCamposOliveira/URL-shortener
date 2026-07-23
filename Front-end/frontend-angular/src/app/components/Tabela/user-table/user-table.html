@@ -4,8 +4,8 @@
       <tr>
         <th>Nome</th>
         <th>E-mail</th>
-        <th>Tipo / Regra</th>
-        <th>Qtd. Max URLs</th>
+        <th>Perfil</th>
+        <th>Limit URLs</th>
         <th>Status</th>
         <th class="text-center">Ações</th>
       </tr>
@@ -24,9 +24,22 @@
               {{ user.isAdmin ? 'Admin' : 'Usuário' }}
             </span>
           </td>
-          <td>
-            {{ user.qtdMaxUrl }}
-          </td>
+<td>
+  <div class="qtd-url-wrapper">
+    <input 
+      type="number" 
+      class="input-qtd" 
+      [(ngModel)]="user.qtdMaxUrl" 
+      min="1" 
+    />
+    <button 
+      class="btn-salvar-qtd" 
+      (click)="salvarQtdMax.emit({ userId: user.id, novaQtd: user.qtdMaxUrl.toString() })" 
+      title="Salvar limite de URLs">
+      <i class="fa-solid fa-check"></i>
+    </button>
+  </div>
+</td>
           <td>
             <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
               {{ user.isActive ? 'Ativo' : 'Inativo' }}

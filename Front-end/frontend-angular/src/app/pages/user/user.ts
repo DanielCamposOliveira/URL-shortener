@@ -82,4 +82,36 @@ export class UsersPage implements OnInit {
       }
     });
   }
+
+// Adicione este método dentro da classe UsersPage no seu user.ts
+onSalvarQtdMax(event: { userId: string; novaQtd: string }): void {
+  this.serviceData.atualizarQtdMaxUrl(event.userId, event.novaQtd).subscribe({
+    next: () => {
+      // Recarrega a lista para confirmar as alterações
+      this.carregarUsuarios(this.paginaAtual);
+    },
+    error: (erro) => {
+      if (erro.status === 429) {
+        alert('Limite de solicitações excedido. Aguarde alguns instantes antes de realizar uma nova tentativa.');
+      } else {
+        console.error('Erro ao atualizar limite de URLs:', erro);
+        alert('Ocorreu um erro ao atualizar a quantidade máxima de URLs. Tente novamente.');
+      }
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
