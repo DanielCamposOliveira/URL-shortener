@@ -78,7 +78,7 @@ export class ServiceData {
     // URL da sua API de paginação de links
     private apiUrlsListUrl = 'http://localhost:5000/api/v1/urls';
     private apiUsersUrl = 'http://localhost:5000/api/v1/user';
-    private apiUsersList = 'http://localhost:5000/api/v1/users';
+    private apiUsersList = 'http://localhost:5000/api/v1/user/list';
     private apiUserMaxUrl = 'http://localhost:5000/api/v1/user/QtdUrl';
 
     // ==========================================

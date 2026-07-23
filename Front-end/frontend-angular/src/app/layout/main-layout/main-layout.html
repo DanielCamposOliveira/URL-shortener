@@ -1,0 +1,16 @@
+<header>
+  <app-header 
+    [titulo]="'Encurtador de Link'"
+    [Name]="Name"
+    [IsActive]="IsActive"
+    [IsAdmin]="IsAdmin"
+    [isDarkMode]="isDarkMode"
+    (isDarkModeChange)="onThemeChange($event)"
+    (logout)="deslogar()">    
+  </app-header>
+</header>
+
+<main>
+  <!-- As páginas filhas (Home, User, etc.) são exibidas aqui -->
+  <router-outlet></router-outlet>
+</main>

@@ -8,12 +8,19 @@
   <!-- Área dos Links de Navegação -->
 <nav class="nav-links">
   <a routerLink="/Home" routerLinkActive="active" class="nav-item">Home</a>
-  <a routerLink="/User" routerLinkActive="active" class="nav-item">Usuários</a>
+  <!-- Exibe o link de Usuários APENAS se o usuário for Admin -->
+  @if (IsAdmin) {
+    <a routerLink="/User" routerLinkActive="active" class="nav-item">Usuários</a>
+  }
+  
 </nav>
 
   <!-- Área do Usuário -->
   <div class="user-area">
 
+        <!-- Informações do Usuário -->   
+      <span class="user-email">{{ Name }}</span>
+      
     <!-- Botão de Toggle para o Modo Escuro -->
     <div class="theme-switch-wrapper">
       <input 
@@ -50,11 +57,6 @@
         </svg>
       </label>
     </div>
-
-    <!-- Informações do Usuário -->
-   
-      <span class="user-email">{{ Name }}</span>
-    
     
     <!-- Botão Sair -->
     <button (click)="onSair()" class="btn-logout-modern" title="Sair da aplicação">
