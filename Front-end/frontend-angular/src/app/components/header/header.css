@@ -29,7 +29,7 @@
 }
 
 .titulo-app {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -43,7 +43,7 @@
 .nav-item {
   color: var(--text-secondary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700;
   font-size: 0.95rem;
   padding: 0.4rem 0.2rem;
   transition: color 0.2s;

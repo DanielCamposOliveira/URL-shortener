@@ -81,9 +81,7 @@ export class ServiceData {
     private apiUsersList = 'http://localhost:5000/api/v1/user/list';
     private apiUserMaxUrl = 'http://localhost:5000/api/v1/user/QtdUrl';
 
-    // ==========================================
-    // MÉTODOS DE URLS
-    // ==========================================
+
     obterTodosLinks(page: number, limit: number ): Observable<ApiResponse> {
       // Montamos a URL juntando os parâmetros de página e limite
       const urlCompleta = `${this.apiUrlsListUrl}?page=${page}&limit=${limit}`;
@@ -91,6 +89,7 @@ export class ServiceData {
       // O http.get faz a requisição web e avisa o TS que o resultado terá o formato de 'ApiResponse'
       return this.http.get<ApiResponse>(urlCompleta);
     }
+
 
     CriarUrl(originalUrl: string): Observable<void> {
       // Montamos a URL completa para criar um novo link
@@ -104,20 +103,13 @@ export class ServiceData {
       return this.http.post<void>(urlCompleta, body);      
     }
 
-    /**
-     * Remove permanentemente um link pelo seu ID Ofuscado
-     * DELETE -> http://localhost:5000/api/v1/urls/{idOfuscado}
-     */
+
     excluirLink(idOfuscado: string): Observable<void> {
       const urlCompleta = `${this.apiUrlsListUrl}/${idOfuscado}`;
       return this.http.delete<void>(urlCompleta);
     }
 
-    /**
-     * Alterna o estado (Ativo/Inativo) de um link no servidor
-     * PATCH -> http://localhost:5000/api/v1/urls/{idOfuscado}
-     * Não envia parâmetros no corpo, o backend inverte o estado atual automaticamente.
-     */
+
     alternarStatusLink(idOfuscado: string): Observable<UrlItem> {
       const urlCompleta = `${this.apiUrlsListUrl}/${idOfuscado}`;
       
@@ -125,16 +117,13 @@ export class ServiceData {
       return this.http.patch<UrlItem>(urlCompleta, {});
     }
 
-    /**
-     * Busca informações do usuário logado
-     * GET -> http://localhost:5000/api/v1/user
-     */
+
     obterInformacoesUsuario(): Observable<UserInfoResponse> {
       const urlCompleta = `${this.apiUsersUrl}`;
       return this.http.get<UserInfoResponse>(urlCompleta);
     }
 
-    // Adicione este método dentro da classe ServiceData
+
     atualizarTemaUsuario(isDarkMode: boolean): Observable<void> {
       const _isDarkMode = isDarkMode.toString();
       const urlCompleta = `${this.apiUsersUrl}/theme/${_isDarkMode}`;
@@ -143,9 +132,7 @@ export class ServiceData {
       return this.http.patch<void>(urlCompleta, {});
     }
 
-    // ==========================================
-    // NOVOS MÉTODOS DE USUÁRIOS
-    // ==========================================
+
     obterTodosUsuarios(page: number = 1, limit: number = 10): Observable<UsersResponse> {
 
         const urlCompleta = `${this.apiUsersList}?page=${page}&limit=${limit}`;
@@ -156,24 +143,27 @@ export class ServiceData {
 
     //return this.http.get<UsersResponse>(this.apiUsersUrl, { params });
      return this.http.get<UsersResponse>(urlCompleta);
-  }
+    }
 
-atualizarQtdMaxUrl(userId: string, qtdMaxUrl: string): Observable<void> {
- 
-        const body: QtdUrl = {
-          userId : userId,
-          qtdMaxUrl: qtdMaxUrl
-      };
 
-  return this.http.patch<void>(`${this.apiUserMaxUrl}`, body);
-}
+    atualizarQtdMaxUrl(userId: string, qtdMaxUrl: string): Observable<void> {
+    
+            const body: QtdUrl = {
+              userId : userId,
+              qtdMaxUrl: qtdMaxUrl
+          };
 
-  alternarStatusUsuario(id: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUsersUrl}/${id}`, {});
-  }
+      return this.http.patch<void>(`${this.apiUserMaxUrl}`, body);
+    }
 
-  excluirUsuario(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUsersUrl}/${id}`);
-  }
+
+    alternarStatusUsuario(id: string): Observable<void> {
+      return this.http.patch<void>(`${this.apiUsersUrl}/${id}`, {});
+    }
+
+
+    excluirUsuario(id: string): Observable<void> {
+      return this.http.delete<void>(`${this.apiUsersUrl}/${id}`);
+    }
 
 }

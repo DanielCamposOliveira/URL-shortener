@@ -1,11 +1,11 @@
-<main class="login-container dark-theme">
+<main class="login-container">
   <div class="login-card">
     <div class="login-header">
-      <h2>Acessar Sistema</h2>
-      <p>Bem-vindo de volta! Entre com suas credenciais.</p>
+      <h2>Criar Conta</h2>
+      <p>Preencha os dados para acessar a plataforma</p>
     </div>
 
-    <form class="login-form" (ngSubmit)="login()">
+    <form class="login-form" (ngSubmit)="RegistarUsuario()">
       <!-- Exibição de Erro -->
       @if (mensagemErro()) {
         <div class="error-message">
@@ -13,6 +13,21 @@
           <span>{{ mensagemErro() }}</span>
         </div>
       }
+
+      <!-- Campo Nome -->
+      <div class="form-group">
+        <label for="name">Nome</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-user input-icon"></i>
+          <input 
+            type="text" 
+            id="name" 
+            [(ngModel)]="name" 
+            name="name" 
+            required 
+            placeholder="Seu nome completo">
+        </div>
+      </div>
 
       <!-- Campo E-mail -->
       <div class="form-group">
@@ -25,7 +40,7 @@
             [(ngModel)]="email" 
             name="email" 
             required 
-            placeholder="seu@email.com">
+            placeholder="seuemail@exemplo.com">
         </div>
       </div>
 
@@ -37,29 +52,26 @@
           <input 
             type="password" 
             id="password" 
-            [(ngModel)]="senha" 
-            name="senha" 
+            [(ngModel)]="password" 
+            name="password" 
             required 
-            placeholder="••••••••">
+            placeholder="Sua senha">
         </div>
       </div>
 
-      <!-- Botão Entrar -->
+      <!-- Botão Cadastrar -->
       <button type="submit" class="btn-submit" [disabled]="estaCarregando()">
         @if (estaCarregando()) {
-          <i class="fa-solid fa-spinner fa-spin"></i> Entrando...
+          <i class="fa-solid fa-spinner fa-spin"></i> Criando conta...
         } @else {
-          <i class="fa-solid fa-right-to-bracket"></i> Entrar
+          <i class="fa-solid fa-user-plus"></i> Cadastrar
         }
       </button>
 
-      <!-- Botão Criar Conta -->
-
-
-      <a routerLink="/registre" class="btn-secondary">
-        <i class="fa-solid fa-user-plus"></i> Criar Conta
+      <!-- Botão Voltar para o Login -->
+      <a routerLink="/login" class="btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Já tenho uma conta
       </a>
-
     </form>
   </div>
 </main>
