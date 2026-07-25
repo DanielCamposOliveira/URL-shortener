@@ -3,9 +3,7 @@
         <Project Path="Back-end\API-Data\API-Data.csproj" />
         <Project Path="Back-end\IdGeneratorService/IdGeneratorService.csproj" />
     </Folder>
-    <Folder Name="/Front-end/">
-        <Project Path="Front-end\frontend-mvc/frontend-mvc.csproj" />
-    </Folder>
+
 </Solution>
 
 
