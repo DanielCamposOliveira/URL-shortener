@@ -1,27 +1,31 @@
+import { FormsModule } from '@angular/forms';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UrlItem } from '../../../service/Data/service.data';
+import { User } from '../../../service/Data/service.data';
 
 @Component({
-  selector: 'app-url-table',
-  imports: [CommonModule],
-  templateUrl: './url-table.html',
-  styleUrl: './url-table.css',
+  selector: 'app-user-table',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './user-table.html',
+  styleUrl: './user-table.css',
 })
-export class UrlTableComponent {
-
+export class UserTable {
+  
   // Recebe a lista de usuários do JSON 
-  @Input() links: UrlItem[] = [];
+  //@Input() links: User[] = [];
+  @Input() users: User[] = [];
 
   // Mapeamento direto do seu JSON
   @Input() page: number = 1;
   @Input() limit: number = 10;
   @Input() totalCount: number = 0; // Nome correto da propriedade do JSON!
 
+// Eventos de saída do componente
   @Output() alternarStatus = new EventEmitter<string>();
-  @Output() excluirLink = new EventEmitter<string>();
-  @Output() criarUrl = new EventEmitter<string>();
+  @Output() excluirUsuario = new EventEmitter<string>(); 
   @Output() paginaAlterada = new EventEmitter<number>();
+
+  @Output() salvarQtdMax = new EventEmitter<{ userId: string, novaQtd: string }>();
 
   // O cálculo agora usa as variáveis do seu JSON
   get totalPaginas(): number {
@@ -35,12 +39,6 @@ export class UrlTableComponent {
     }
   }
 
-  // Método para copiar a URL para a área de transferência
-  copyUrl(url: string): void {
-  navigator.clipboard.writeText(url).then(() => {
+
   
-  }).catch(err => {
-    console.error('Erro ao copiar:', err);
-  });
-}
 }

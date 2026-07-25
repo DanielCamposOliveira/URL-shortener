@@ -1,0 +1,96 @@
+<div class="tabela-container">
+  <table class="users-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th>Perfil</th>
+        <th>Limit URLs</th>
+        <th>Status</th>
+        <th class="text-center">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of users; track user.id) {
+        <tr>
+          <td>
+            <strong>{{ user.name }}</strong>
+          </td>
+          <td>
+            {{ user.email }}
+          </td>
+          <td>
+            <span class="role-badge" [class.admin]="user.isAdmin">
+              {{ user.isAdmin ? 'Admin' : 'Usuário' }}
+            </span>
+          </td>
+<td>
+  <div class="qtd-url-wrapper">
+    <input 
+      type="number" 
+      class="input-qtd" 
+      [(ngModel)]="user.qtdMaxUrl" 
+      min="1" 
+    />
+    <button 
+      class="btn-salvar-qtd" 
+      (click)="salvarQtdMax.emit({ userId: user.id, novaQtd: user.qtdMaxUrl.toString() })" 
+      title="Salvar limite de URLs">
+      <i class="fa-solid fa-check"></i>
+    </button>
+  </div>
+</td>
+          <td>
+            <span class="status-badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+              {{ user.isActive ? 'Ativo' : 'Inativo' }}
+            </span>
+          </td>
+          <td class="text-center">
+            <div class="acoes-wrapper">
+              <button 
+                (click)="alternarStatus.emit(user.id)" 
+                class="btn-acao" 
+                [class.btn-desativar]="user.isActive" 
+                [class.btn-ativar]="!user.isActive"
+                [title]="user.isActive ? 'Desativar Usuário' : 'Ativar Usuário'">
+                {{ user.isActive ? 'Desativar' : 'Ativar' }}
+              </button>
+
+              <button 
+                (click)="excluirUsuario.emit(user.id)" 
+                class="btn-acao btn-excluir" 
+                title="Excluir Usuário">
+                Excluir
+              </button>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="sem-dados">Nenhum usuário encontrado.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<!-- COMPONENTE DE PAGINAÇÃO -->
+<div class="paginacao">
+  <button 
+    class="btn-pag" 
+    [disabled]="page <= 1"
+    (click)="mudarPagina(page - 1)">
+    Anterior
+  </button>
+
+  <span class="info-paginacao">
+    Página {{ page }} de {{ totalPaginas }}
+  </span>
+
+  <button 
+    class="btn-pag" 
+    [disabled]="page >= totalPaginas"
+    (click)="mudarPagina(page + 1)">
+    Próxima
+  </button>
+</div>

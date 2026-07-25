@@ -29,7 +29,7 @@
 }
 
 .titulo-app {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -43,7 +43,7 @@
 .nav-item {
   color: var(--text-secondary);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700;
   font-size: 0.95rem;
   padding: 0.4rem 0.2rem;
   transition: color 0.2s;
@@ -61,9 +61,21 @@
 }
 
 .user-email {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  
+}
+
+.shortener-box {
+  background-color: var(--bg-container);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  border: 1px solid var(--border-color);
+  margin-bottom: 2.5rem;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 /* --- TOGGLE DARK MODE ADAPTADO --- */

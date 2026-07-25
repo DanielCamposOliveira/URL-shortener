@@ -1,0 +1,18 @@
+.conteudo-principal {
+  margin-top: 20px; 
+  padding: 1.5rem;
+}
+
+.dashboard-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.home-container h1 {
+  font-size: 1.8rem;
+  color: var(--text-primary, #333);
+  margin-bottom: 1.5rem;
+}

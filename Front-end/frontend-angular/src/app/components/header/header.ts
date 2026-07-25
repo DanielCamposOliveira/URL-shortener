@@ -19,14 +19,22 @@ export class HeaderComponent {
   @Input() IsAdmin: boolean = false;
 
   // Variável interna para controlar o estado do tema
-  private _isDarkMode = false;
+  private _isDarkMode = true;
 
   // Getter e Setter para o tema escuro
   @Input()
   set isDarkMode(value: boolean) {
     this._isDarkMode = value;
     // Aplica/Remove a classe no body automaticamente quando o dado chega
-    document.body.classList.toggle('dark-theme', value);
+   // document.body.classList.toggle('dark-theme', value);
+
+   if (value) {
+      document.body.classList.remove('light-theme');
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
+    }    
   }
   
   get isDarkMode(): boolean {
