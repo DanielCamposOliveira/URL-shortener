@@ -9,6 +9,8 @@ Uma API RESTful robusta desenvolvida para o gerenciamento de **URLs** de usuári
 
 O propósito desta API é ir além do CRUD tradicional. O sistema garante o isolamento dos dados por usuário, com validação de payloads, paginação inteligente de recursos e segurança no tráfego de informações através de tokens de autenticação.
 
+<img width="1415" height="1138" alt="image" src="https://github.com/user-attachments/assets/6315f563-c605-4cef-9415-2b23d4321fd2" />
+
 ## 🛠️ Tecnologias Utilizadas
 
 - **Back-end:** .NET 9 / ASP.NET com Minimal API
