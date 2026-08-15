@@ -14,7 +14,7 @@ O propósito desta API é ir além do CRUD tradicional. O sistema garante o isol
 ## 🛠️ Tecnologias Utilizadas
 
 - **Back-end:** .NET 9 / ASP.NET com Minimal API
-- **Front-end:** .NET 9 / ASP.NET MVC
+- **Front-end:** Angular
 - **Persistência & ORM:** Entity Framework Core
 - **Banco de Dados:** PostgreSQL
 - **Segurança & Autenticação:** JWT (JSON Web Tokens) & BCrypt para Hash de Senhas
